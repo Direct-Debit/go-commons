@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/Direct-Debit/gocommons/errlib"
+	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
 	"strings"

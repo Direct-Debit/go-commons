@@ -1,4 +1,4 @@
-module github.com/Direct-Debit/gocommons
+module github.com/Direct-Debit/go-commons
 
 go 1.15
 

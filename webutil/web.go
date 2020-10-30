@@ -2,7 +2,7 @@ package webutil
 
 import (
 	"encoding/json"
-	"github.com/Direct-Debit/gocommons/errlib"
+	"github.com/Direct-Debit/go-commons/errlib"
 	"net/http"
 )
 
