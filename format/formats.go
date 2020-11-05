@@ -62,3 +62,28 @@ func IntToBase36(i int) string {
 	}
 	return result.String()
 }
+
+func base36DigitToInt(d rune) (int, error) {
+	if d >= 'A' && d <= 'Z' {
+		return int(d-'A') + 10, nil
+	}
+	if d >= '0' && d <= '9' {
+		return int(d - '0'), nil
+	}
+	return 0, errors.New(fmt.Sprintf("Can't read %c as base 36 digit", d))
+}
+
+// Convert a base36 to int where A-Z represent digits with values 10-35
+func Base36toInt(s string) (int, error) {
+	s = strings.ToUpper(s)
+	result := 0
+	for i, d := range s {
+		v, err := base36DigitToInt(d)
+		if err != nil {
+			return 0, err
+		}
+		digitPos := int(math.Pow(36.0, float64(len(s)-i-1)))
+		result += v * digitPos
+	}
+	return result, nil
+}
