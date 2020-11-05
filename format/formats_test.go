@@ -68,3 +68,30 @@ func TestBase36toInt(t *testing.T) {
 		}
 	}
 }
+
+func TestCentToCommaRand(t *testing.T) {
+	tables := []struct {
+		in  int
+		out string
+	}{
+		{0, "0,00"},
+		{7, "0,07"},
+		{10, "0,10"},
+		{17, "0,17"},
+		{36, "0,36"},
+		{42, "0,42"},
+		{49, "0,49"},
+		{72, "0,72"},
+		{442, "4,42"},
+		{1296, "12,96"},
+		{1322, "13,22"},
+		{1000000, "10000,00"},
+	}
+
+	for _, table := range tables {
+		result := CentToCommaRand(table.in)
+		if result != table.out {
+			t.Errorf("Got %s, wanted %s", result, table.out)
+		}
+	}
+}
