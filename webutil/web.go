@@ -40,3 +40,7 @@ func RequestBody(r *http.Request, consume bool) string {
 	}
 	return buff.String()
 }
+
+func ParseBodyJSON(r *http.Request, target interface{}) error {
+	return json.NewDecoder(r.Body).Decode(target)
+}
