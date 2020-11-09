@@ -3,13 +3,10 @@ package webutil
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/Direct-Debit/go-commons/errlib"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 // Write err.Error() in JSON object to w and return true if err != nil.
@@ -34,16 +31,6 @@ func ErrorResponder(msg string, code int) http.HandlerFunc {
 	}
 }
 
-func PerformanceLogMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info(r.URL)
-		start := time.Now()
-		next.ServeHTTP(w, r)
-		duration := time.Since(start)
-		log.Info(fmt.Sprintf("Handled in %v seconds", duration.Seconds()))
-	})
-}
-
 func RequestBody(r *http.Request, consume bool) string {
 	buff := new(bytes.Buffer)
 	_, err := io.Copy(buff, r.Body)
@@ -52,11 +39,4 @@ func RequestBody(r *http.Request, consume bool) string {
 		r.Body = ioutil.NopCloser(buff)
 	}
 	return buff.String()
-}
-
-func DebugRequestMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Debug(RequestBody(r, false))
-		next.ServeHTTP(w, r)
-	})
 }
