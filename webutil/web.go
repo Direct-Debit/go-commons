@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // Write err.Error() in JSON object to w and return true if err != nil.
@@ -43,4 +44,15 @@ func RequestBody(r *http.Request, consume bool) string {
 
 func ParseBodyJSON(r *http.Request, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
+}
+
+// Get the Content-Type from the header.
+// Return "" if there is no Content-Type header.
+func GetContentType(h http.Header) string {
+	// Based on https://github.com/gorilla/handlers/blob/v1.5.1/handlers.go#L85
+	ct := h.Get("Content-Type")
+	if i := strings.IndexRune(ct, ';'); i != -1 {
+		return ct[0:i]
+	}
+	return ct
 }
