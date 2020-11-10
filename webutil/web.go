@@ -47,6 +47,11 @@ func ParseBodyJSON(r *http.Request, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
+func WriteJSON(w http.ResponseWriter, v interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(v)
+}
+
 // Get the Content-Type from the header.
 // Return "" if there is no Content-Type header.
 func GetContentType(h http.Header) string {
