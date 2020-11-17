@@ -48,8 +48,22 @@ func RequestBody(r *http.Request, consume bool) string {
 	return buff.String()
 }
 
-func ParseBodyJSON(r *http.Request, target interface{}) error {
+func ParseRequestJSON(r *http.Request, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
+}
+
+func ParseResponseJSON(r *http.Response, target interface{}) error {
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
+// Read the JSON in the Response Body into a map
+func ParseResponseMap(r *http.Response) (map[string]interface{}, error) {
+	var m map[string]interface{}
+	err := ParseResponseJSON(r, &m)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func WriteJSON(w http.ResponseWriter, v interface{}) error {
