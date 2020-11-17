@@ -45,7 +45,7 @@ type FileStore interface {
 	FullName(path string) (fullPath string, err error)
 	// Split the path into directory and filename
 	Split(path string) (directory string, filename string)
-	// The default upload path for this file storage, return directory only if filename is blank
+	// The default upload path for this file storage, if filename is blank, return directory only
 	UploadPath(userCode string, filename string) string
 	// The default download path for this file storage, return directory only if filename is blank
 	DownloadPath(userCode string, filename string) string
