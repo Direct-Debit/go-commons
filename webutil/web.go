@@ -3,6 +3,7 @@ package webutil
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/Direct-Debit/go-commons/errlib"
 	"io"
 	"io/ioutil"
@@ -48,6 +49,16 @@ func RequestBody(r *http.Request, consume bool) string {
 	return buff.String()
 }
 
+func ResponseBody(r *http.Response, consume bool) string {
+	buff := new(bytes.Buffer)
+	_, err := io.Copy(buff, r.Body)
+	errlib.PanicError(err, "Couldn't copy response body")
+	if !consume {
+		r.Body = ioutil.NopCloser(buff)
+	}
+	return buff.String()
+}
+
 func ParseRequestJSON(r *http.Request, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
@@ -64,6 +75,20 @@ func ParseResponseMap(r *http.Response) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+// Get the specified field from the response.
+// Raise an error if the field is not present or the body isn't valid JSON
+func ResponseField(r *http.Response, field string) (interface{}, error) {
+	m, err := ParseResponseMap(r)
+	if err != nil {
+		return nil, err
+	}
+	v, ok := m[field]
+	if !ok {
+		return nil, errors.New(field + " is not in the response body")
+	}
+	return v, nil
 }
 
 func WriteJSON(w http.ResponseWriter, v interface{}) error {
