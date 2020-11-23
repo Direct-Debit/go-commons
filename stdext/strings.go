@@ -1,6 +1,10 @@
 package stdext
 
-import "math"
+import (
+	"bufio"
+	"math"
+	"strings"
+)
 
 // Split the string into parts of max length n
 func SplitParts(s string, n int) []string {
@@ -18,4 +22,13 @@ func SplitParts(s string, n int) []string {
 	}
 
 	return result
+}
+
+func SplitLines(s string) []string {
+	var lines []string
+	sc := bufio.NewScanner(strings.NewReader(s))
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+	return lines
 }
