@@ -106,3 +106,5 @@ func GetContentType(h http.Header) string {
 	}
 	return ct
 }
+
+var NopHandler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
