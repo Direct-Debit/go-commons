@@ -3,6 +3,7 @@ package stdext
 import (
 	"bufio"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -31,4 +32,9 @@ func SplitLines(s string) []string {
 		lines = append(lines, sc.Text())
 	}
 	return lines
+}
+
+func IsNumeric(s string) bool {
+	_, err := strconv.Atoi(s)
+	return err == nil
 }
