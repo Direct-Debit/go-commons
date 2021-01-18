@@ -2,9 +2,12 @@ package fileio
 
 import (
 	"bytes"
+	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"io"
+	"strings"
 )
 
 type S3Store struct {
@@ -18,7 +21,15 @@ func NewS3Store(bucket string) S3Store {
 }
 
 func (s S3Store) Save(path string, content string) error {
-	panic("implement me")
+	_, err := s.s3.PutObject(&s3.PutObjectInput{
+		Body:   strings.NewReader(content),
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(path),
+	})
+	if errlib.ErrorError(err, "Couldn't save object to "+path) {
+		return err
+	}
+	return nil
 }
 
 func (s S3Store) Load(path string) (content string, err error) {
