@@ -2,10 +2,12 @@ package fileio
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
 )
@@ -33,6 +35,7 @@ func (s S3Store) Save(path string, content string) error {
 }
 
 func (s S3Store) Load(path string) (content string, err error) {
+	log.Trace(fmt.Sprintf("Downloading s3://%s%s", s.Bucket, path))
 	output, err := s.s3.GetObject(&s3.GetObjectInput{
 		Bucket: &s.Bucket,
 		Key:    &path,
@@ -43,11 +46,13 @@ func (s S3Store) Load(path string) (content string, err error) {
 
 	var fileContent []byte
 	buffer := bytes.NewBuffer(fileContent)
-	if _, err = io.Copy(buffer, output.Body); err != nil {
+	n, err := io.Copy(buffer, output.Body)
+	if errlib.ErrorError(err, "Couldn't copy bytes downloaded from s3") {
 		return "", err
 	}
 
 	content = buffer.String()
+	log.Trace(fmt.Sprintf("Downloaded %d bytes from s3", n))
 	return content, nil
 }
 

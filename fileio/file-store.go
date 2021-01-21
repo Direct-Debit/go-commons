@@ -18,6 +18,11 @@ func CurrStorage() FileStore {
 	return storage
 }
 
+func SetStorage(fs FileStore) {
+	once.Do(func() {}) // Disable default setup if it has not yet happened
+	storage = fs
+}
+
 type FileInfo struct {
 	Name    string
 	Path    string
