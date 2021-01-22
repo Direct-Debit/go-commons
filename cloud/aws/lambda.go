@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	log "github.com/sirupsen/logrus"
 )
 
 type LambdaClient struct {
@@ -12,6 +13,7 @@ type LambdaClient struct {
 }
 
 func NewLambdaClient() LambdaClient {
+	log.Trace("Setting up lambda client")
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -33,11 +35,16 @@ func (l LambdaClient) Validate(number string, branch string, accountType string)
 		return nil, err
 	}
 
-	response, err := l.client.Invoke(&lambda.InvokeInput{FunctionName: aws.String("cloudwabbit"), Payload: payload})
+	log.Trace("Invoking lambda cmn-cloudwabbit")
+	response, err := l.client.Invoke(&lambda.InvokeInput{
+		FunctionName: aws.String("cmn-cloudwabbit"),
+		Payload:      payload,
+	})
 	if err != nil {
 		return nil, err
 	}
 	var result map[string]map[string]string
+	log.Trace("cloudwabbit response: " + string(response.Payload))
 	err = json.Unmarshal(response.Payload, &result)
 	return result["errors"], err
 }
