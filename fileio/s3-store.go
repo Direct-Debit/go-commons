@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
+	"time"
 )
 
 type S3Store struct {
@@ -18,7 +19,9 @@ type S3Store struct {
 }
 
 func NewS3Store(bucket string) S3Store {
-	sess := session.Must(session.NewSession())
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
 	return S3Store{s3: s3.New(sess), Bucket: bucket}
 }
 
@@ -61,7 +64,26 @@ func (s S3Store) Move(path string, targetDir string) error {
 }
 
 func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
-	panic("implement me")
+	output, err := s.s3.ListObjectsV2(&s3.ListObjectsV2Input{
+		Bucket: &s.Bucket,
+		Prefix: &path,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	subPaths = make([]FileInfo, len(output.Contents))
+	for i, sp := range output.Contents {
+		p, name := s.Split(*sp.Key)
+
+		subPaths[i] = FileInfo{
+			Name:    name,
+			Path:    p,
+			ModTime: time.Time{},
+		}
+	}
+
+	return subPaths, err
 }
 
 func (s S3Store) Info(path string) (info FileInfo, err error) {
@@ -73,7 +95,10 @@ func (s S3Store) FullName(path string) (fullPath string, err error) {
 }
 
 func (s S3Store) Split(path string) (directory string, filename string) {
-	panic("implement me")
+	parts := strings.Split(path, "/")
+	filename = parts[len(parts)-1]
+	directory = strings.TrimSuffix(path, "/"+filename)
+	return directory, filename
 }
 
 func (s S3Store) UploadPath(userCode string, filename string) string {
