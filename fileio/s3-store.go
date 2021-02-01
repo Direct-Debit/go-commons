@@ -72,15 +72,18 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 		return nil, err
 	}
 
-	subPaths = make([]FileInfo, len(output.Contents))
-	for i, sp := range output.Contents {
+	subPaths = make([]FileInfo, 0, len(output.Contents))
+	for _, sp := range output.Contents {
 		p, name := s.Split(*sp.Key)
+		if name == "" {
+			continue
+		}
 
-		subPaths[i] = FileInfo{
+		subPaths = append(subPaths, FileInfo{
 			Name:    name,
 			Path:    p,
 			ModTime: time.Time{},
-		}
+		})
 	}
 
 	return subPaths, err
