@@ -67,7 +67,7 @@ func (s S3Store) Move(path string, targetDir string) error {
 
 	_, err := s.s3.CopyObject(&s3.CopyObjectInput{
 		Bucket:     s.Bucket,
-		CopySource: &path,
+		CopySource: aws.String(*s.Bucket + "/" + path),
 		Key:        aws.String(targetDir + name),
 	})
 	if errlib.ErrorError(err, "Couldn't copy s3 file") {
