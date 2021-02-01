@@ -15,20 +15,20 @@ import (
 
 type S3Store struct {
 	s3     *s3.S3
-	Bucket string
+	Bucket *string
 }
 
 func NewS3Store(bucket string) S3Store {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-	return S3Store{s3: s3.New(sess), Bucket: bucket}
+	return S3Store{s3: s3.New(sess), Bucket: &bucket}
 }
 
 func (s S3Store) Save(path string, content string) error {
 	_, err := s.s3.PutObject(&s3.PutObjectInput{
 		Body:   strings.NewReader(content),
-		Bucket: aws.String(s.Bucket),
+		Bucket: s.Bucket,
 		Key:    aws.String(path),
 	})
 	if errlib.ErrorError(err, "Couldn't save object to "+path) {
@@ -38,9 +38,9 @@ func (s S3Store) Save(path string, content string) error {
 }
 
 func (s S3Store) Load(path string) (content string, err error) {
-	log.Trace(fmt.Sprintf("Downloading s3://%s%s", s.Bucket, path))
+	log.Trace(fmt.Sprintf("Downloading s3://%s%s", *s.Bucket, path))
 	output, err := s.s3.GetObject(&s3.GetObjectInput{
-		Bucket: &s.Bucket,
+		Bucket: s.Bucket,
 		Key:    &path,
 	})
 	if err != nil {
@@ -60,12 +60,31 @@ func (s S3Store) Load(path string) (content string, err error) {
 }
 
 func (s S3Store) Move(path string, targetDir string) error {
-	panic("implement me")
+	_, name := s.Split(path)
+	if targetDir[len(targetDir)-1] != '/' {
+		targetDir += "/"
+	}
+
+	_, err := s.s3.CopyObject(&s3.CopyObjectInput{
+		Bucket:     s.Bucket,
+		CopySource: &path,
+		Key:        aws.String(targetDir + name),
+	})
+	if errlib.ErrorError(err, "Couldn't copy s3 file") {
+		return err
+	}
+
+	_, err = s.s3.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: s.Bucket,
+		Key:    &path,
+	})
+	errlib.ErrorError(err, "Couldn't delete s3 file")
+	return err
 }
 
 func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 	output, err := s.s3.ListObjectsV2(&s3.ListObjectsV2Input{
-		Bucket: &s.Bucket,
+		Bucket: s.Bucket,
 		Prefix: &path,
 	})
 	if err != nil {
