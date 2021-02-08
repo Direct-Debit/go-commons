@@ -30,6 +30,10 @@ func WarnError(err error, message string) bool {
 	return Error(err, message, log.Warn)
 }
 
+func InfoError(err error, message string) bool {
+	return Error(err, message, log.Info)
+}
+
 func DebugError(err error, message string) bool {
 	return Error(err, message, log.Debug)
 }
