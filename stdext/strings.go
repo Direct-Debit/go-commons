@@ -38,3 +38,12 @@ func IsNumeric(s string) bool {
 	_, err := strconv.Atoi(s)
 	return err == nil
 }
+
+func ContainsOnly(s, set string) bool {
+	for _, c := range s {
+		if !strings.ContainsRune(set, c) {
+			return false
+		}
+	}
+	return true
+}
