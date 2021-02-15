@@ -28,7 +28,10 @@ func (s *SqlJson) Scan(src interface{}) error {
 	if !ok {
 		return errors.New(fmt.Sprintf("could not scan %v as JSON", src))
 	}
-	return json.Unmarshal(val, s)
+	var result map[string]interface{}
+	err := json.Unmarshal(val, &result)
+	*s = result
+	return err
 }
 
 func (s SqlJson) Value() (driver.Value, error) {
