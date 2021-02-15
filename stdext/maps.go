@@ -6,3 +6,9 @@ func MapStrStrGetDef(m map[string]string, k string, d string) string {
 	}
 	return d
 }
+
+func JoinMaps(target map[string]interface{}, source map[string]interface{}) {
+	for k, v := range source {
+		target[k] = v
+	}
+}
