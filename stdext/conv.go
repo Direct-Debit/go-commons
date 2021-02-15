@@ -1,6 +1,11 @@
 package stdext
 
-import "encoding/json"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 // Use json to convert the interface{} to a map if possible. Return json errors if any.
 func ToMap(s interface{}) (map[string]interface{}, error) {
@@ -14,4 +19,18 @@ func ToMap(s interface{}) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+type SqlJson map[string]interface{}
+
+func (s *SqlJson) Scan(src interface{}) error {
+	val, ok := src.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprintf("could not scan %v as JSON", src))
+	}
+	return json.Unmarshal(val, s)
+}
+
+func (s SqlJson) Value() (driver.Value, error) {
+	return json.Marshal(s)
 }
