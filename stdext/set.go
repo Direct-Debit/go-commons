@@ -22,6 +22,7 @@ func (ss StrSet) ToSlice() []string {
 	idx := 0
 	for v := range ss {
 		s[idx] = v
+		idx++
 	}
 	return s
 }
