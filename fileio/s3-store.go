@@ -122,11 +122,3 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 	directory = strings.TrimSuffix(path, "/"+filename)
 	return directory, filename
 }
-
-func (s S3Store) UploadPath(userCode string, filename string) string {
-	panic("implement me")
-}
-
-func (s S3Store) DownloadPath(userCode string, filename string) string {
-	panic("implement me")
-}
