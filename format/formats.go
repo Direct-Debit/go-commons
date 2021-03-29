@@ -18,6 +18,7 @@ const (
 	DateTimeCompact     = "060102150405"
 	DateTimeShort       = "02/01/2006 15:04"
 	DateTimeShortDashes = "2006-01-02 15:04:05"
+	DDsMMsYYYY          = "02/01/2006"
 )
 
 func CentToCommaRand(cent int) string {
