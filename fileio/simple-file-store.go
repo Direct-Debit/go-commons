@@ -2,6 +2,7 @@ package fileio
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
@@ -33,7 +34,10 @@ func (s SimpleFileStore) Save(path string, content string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+		panic(fmt.Sprintf("Could not close file %s: %v", file.Name(), err))
+	}()
 
 	_, err = file.WriteString(content)
 	if err != nil {
