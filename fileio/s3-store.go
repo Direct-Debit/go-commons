@@ -10,7 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
-	"time"
 )
 
 type S3Store struct {
@@ -101,7 +100,7 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 		subPaths = append(subPaths, FileInfo{
 			Name:    name,
 			Path:    *sp.Key,
-			ModTime: time.Time{},
+			ModTime: *sp.LastModified,
 		})
 	}
 
