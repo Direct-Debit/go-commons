@@ -37,3 +37,20 @@ func (s *SqlJson) Scan(src interface{}) error {
 func (s SqlJson) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
+
+type SqlJsonArray []interface{}
+
+func (s *SqlJsonArray) Scan(src interface{}) error {
+	val, ok := src.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprintf("could not scan %v as JSON", src))
+	}
+	var result []interface{}
+	err := json.Unmarshal(val, &result)
+	*s = result
+	return err
+}
+
+func (s SqlJsonArray) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
