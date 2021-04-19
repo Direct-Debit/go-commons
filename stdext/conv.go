@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// Use json to convert the interface{} to a map if possible. Return json errors if any.
+// ToMap uses json to convert the interface{} to a map if possible. Return json errors if any.
 func ToMap(s interface{}) (map[string]interface{}, error) {
 	b, err := json.Marshal(s)
 	if err != nil {
