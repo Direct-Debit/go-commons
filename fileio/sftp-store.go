@@ -68,7 +68,9 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 	if err != nil {
 		return "", err
 	}
-	defer errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+	defer func() {
+		errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+	}()
 
 	var strBuilder strings.Builder
 	_, err = file.WriteTo(&strBuilder)
