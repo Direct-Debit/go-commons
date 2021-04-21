@@ -16,21 +16,33 @@ var (
 	lock sync.Mutex
 )
 
-func Get(key string) interface{} {
+func GetDef(key string, def interface{}) interface{} {
 	lock.Lock()
 	defer lock.Unlock()
 
 	once.Do(func() {
 		var err error
 		conf, err = toml.LoadFile("config.toml")
-		errlib.FatalError(err, "Error loading config")
+		errlib.WarnError(err, "Error loading config")
 	})
 
 	val := conf.Get(key)
 	if val == nil {
-		errlib.FatalError(errors.New(key), "Config variable missing")
+		return def
 	}
 	return val
+}
+
+func Get(key string) interface{} {
+	v := GetDef(key, nil)
+	if v == nil {
+		errlib.FatalError(errors.New(key), "Config variable missing")
+	}
+	return v
+}
+
+func GetStrDef(key string, def string) string {
+	return GetDef(key, def).(string)
 }
 
 func GetStr(key string) string {
