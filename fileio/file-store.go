@@ -7,25 +7,25 @@ import (
 )
 
 var (
-	storage FileStore
-	once    sync.Once
+	storage      FileStore
+	defaultSetup sync.Once
 )
 
 func CurrStorage() FileStore {
-	once.Do(func() {
+	defaultSetup.Do(func() {
 		storage = SimpleFileStore{BasePath: ""}
 	})
 	return storage
 }
 
 func SetStorage(fs FileStore) {
-	once.Do(func() {}) // Disable default setup if it has not yet happened
+	defaultSetup.Do(func() {}) // Disable default setup if it has not yet happened
 	storage = fs
 }
 
 type FileInfo struct {
 	Name    string
-	Path    string
+	Path    string // Includes the filename
 	ModTime time.Time
 }
 
