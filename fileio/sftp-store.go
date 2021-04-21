@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"fmt"
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -76,7 +77,24 @@ func (S SFTPStore) Move(path string, targetDir string) error {
 }
 
 func (S SFTPStore) List(path string) (subPaths []FileInfo, err error) {
-	panic("implement me")
+	if err := S.connect(); err != nil {
+		return nil, err
+	}
+	defer S.disconnect()
+
+	inf, err := S.client.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	subPaths = make([]FileInfo, len(inf))
+	for i, info := range inf {
+		subPaths[i] = FileInfo{
+			Name:    info.Name(),
+			Path:    fmt.Sprintf("%s/%s", path, info.Name()),
+			ModTime: info.ModTime(),
+		}
+	}
+	return subPaths, nil
 }
 
 func (S SFTPStore) Info(path string) (info FileInfo, err error) {
