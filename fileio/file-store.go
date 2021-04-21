@@ -41,6 +41,8 @@ type FileStore interface {
 	Load(path string) (content string, err error)
 	// Move the file at path to the target directory
 	Move(path string, targetDir string) error
+	// Delete deletes the file at the specified path
+	Delete(path string) error
 	// List the sub paths at the given path, include directories and normal files.
 	// The path of each returned FileInfo object will have the same relativity as the given path
 	List(path string) (subPaths []FileInfo, err error)

@@ -81,6 +81,10 @@ func (s S3Store) Move(path string, targetDir string) error {
 	return err
 }
 
+func (s S3Store) Delete(path string) error {
+	panic("implement me!")
+}
+
 func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 	output, err := s.s3.ListObjectsV2(&s3.ListObjectsV2Input{
 		Bucket: s.Bucket,

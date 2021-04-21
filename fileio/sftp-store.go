@@ -82,6 +82,15 @@ func (S *SFTPStore) Move(path string, targetDir string) error {
 	panic("implement me")
 }
 
+func (S *SFTPStore) Delete(path string) error {
+	if err := S.connect(); err != nil {
+		return err
+	}
+	defer S.disconnect()
+
+	return S.client.Remove(path)
+}
+
 func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 	if err := S.connect(); err != nil {
 		return nil, err

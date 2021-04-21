@@ -86,6 +86,10 @@ func (s SimpleFileStore) Move(path string, targetDir string) error {
 	return os.Remove(path)
 }
 
+func (s SimpleFileStore) Delete(path string) error {
+	return os.Remove(path)
+}
+
 func (s SimpleFileStore) List(path string) (subPaths []FileInfo, err error) {
 	fPath := s.fullPath(path)
 
