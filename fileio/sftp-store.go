@@ -17,7 +17,7 @@ type SFTPStore struct {
 	client *sftp.Client
 }
 
-func (S SFTPStore) connect() error {
+func (S *SFTPStore) connect() error {
 	conf := &ssh.ClientConfig{
 		User:            S.User,
 		Auth:            []ssh.AuthMethod{ssh.Password(S.Password)},
@@ -32,27 +32,33 @@ func (S SFTPStore) connect() error {
 	return err
 }
 
-func (S SFTPStore) disconnect() {
+func (S *SFTPStore) disconnect() {
+	if S.client == (*sftp.Client)(nil) {
+		return
+	}
 	errlib.ErrorError(S.client.Close(), "Could not disconnect from SFTP")
 }
 
-func (S SFTPStore) Save(path string, content string) error {
+func (S *SFTPStore) Save(path string, content string) error {
 	if err := S.connect(); err != nil {
 		return err
 	}
 	defer S.disconnect()
 
-	file, err := S.client.OpenFile(path, os.O_WRONLY)
-	if err != nil {
+	file, err := S.client.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if errlib.ErrorError(err, "SFTP could not create file "+path) {
 		return err
 	}
-	defer errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+	defer func() {
+		errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+	}()
 
 	_, err = file.Write([]byte(content))
+	errlib.ErrorError(err, "SFTP could not write to file "+path)
 	return err
 }
 
-func (S SFTPStore) Load(path string) (content string, err error) {
+func (S *SFTPStore) Load(path string) (content string, err error) {
 	if err := S.connect(); err != nil {
 		return "", err
 	}
@@ -72,11 +78,11 @@ func (S SFTPStore) Load(path string) (content string, err error) {
 	return strBuilder.String(), nil
 }
 
-func (S SFTPStore) Move(path string, targetDir string) error {
+func (S *SFTPStore) Move(path string, targetDir string) error {
 	panic("implement me")
 }
 
-func (S SFTPStore) List(path string) (subPaths []FileInfo, err error) {
+func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 	if err := S.connect(); err != nil {
 		return nil, err
 	}
@@ -97,22 +103,22 @@ func (S SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 	return subPaths, nil
 }
 
-func (S SFTPStore) Info(path string) (info FileInfo, err error) {
+func (S *SFTPStore) Info(path string) (info FileInfo, err error) {
 	panic("implement me")
 }
 
-func (S SFTPStore) FullName(path string) (fullPath string, err error) {
+func (S *SFTPStore) FullName(path string) (fullPath string, err error) {
 	panic("implement me")
 }
 
-func (S SFTPStore) Split(path string) (directory string, filename string) {
+func (S *SFTPStore) Split(path string) (directory string, filename string) {
 	panic("implement me")
 }
 
-func (S SFTPStore) UploadPath(userCode string, filename string) string {
+func (S *SFTPStore) UploadPath(userCode string, filename string) string {
 	panic("implement me")
 }
 
-func (S SFTPStore) DownloadPath(userCode string, filename string) string {
+func (S *SFTPStore) DownloadPath(userCode string, filename string) string {
 	panic("implement me")
 }
