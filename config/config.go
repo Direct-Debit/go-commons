@@ -93,6 +93,8 @@ func GetLogLevel() log.Level {
 		return log.ErrorLevel
 	case "FATAL":
 		return log.FatalLevel
+	case "PANIC":
+		return log.PanicLevel
 	default:
 		level := log.InfoLevel
 		if GetBoolDef("debug", true) {
