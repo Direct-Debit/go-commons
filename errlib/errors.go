@@ -5,35 +5,36 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Error(err error, message string, printer func(...interface{})) bool {
+func Error(printer func(...interface{}), err error, format string, a ...interface{}) bool {
 	if err != nil {
-		printer(fmt.Sprintf("%v: %v", message, err))
+		msg := fmt.Sprintf(format, a)
+		printer(fmt.Sprintf("%v: %v", msg, err))
 		return true
 	}
 	return false
 }
 
-func FatalError(err error, message string) {
-	Error(err, message, log.Fatal)
+func FatalError(err error, format string, a ...interface{}) {
+	Error(log.Fatal, err, format, a)
 }
 
-func PanicError(err error, message string) {
-	Error(err, message, log.Panic)
+func PanicError(err error, format string, a ...interface{}) {
+	Error(log.Panic, err, format, a)
 }
 
-// If err != nil, print message: err to the log and return true
-func ErrorError(err error, message string) bool {
-	return Error(err, message, log.Error)
+// ErrorError checks if err != nil, in which case it logs the error with fmt.Sprintf(format, a) prepended
+func ErrorError(err error, format string, a ...interface{}) bool {
+	return Error(log.Error, err, format, a)
 }
 
-func WarnError(err error, message string) bool {
-	return Error(err, message, log.Warn)
+func WarnError(err error, format string, a ...interface{}) bool {
+	return Error(log.Warn, err, format, a)
 }
 
-func InfoError(err error, message string) bool {
-	return Error(err, message, log.Info)
+func InfoError(err error, format string, a ...interface{}) bool {
+	return Error(log.Info, err, format, a)
 }
 
-func DebugError(err error, message string) bool {
-	return Error(err, message, log.Debug)
+func DebugError(err error, format string, a ...interface{}) bool {
+	return Error(log.Debug, err, format, a)
 }
