@@ -24,6 +24,9 @@ func GetDef(key string, def interface{}) interface{} {
 		conf, err = toml.LoadFile("config.toml")
 		errlib.WarnError(err, "Error loading config")
 	})
+	if conf == (*toml.Tree)(nil) {
+		return def
+	}
 
 	val := conf.Get(key)
 	if val == nil {
