@@ -3,6 +3,7 @@ package fileio
 import (
 	"errors"
 	"fmt"
+	"github.com/Direct-Debit/go-commons/errlib"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
@@ -36,7 +37,7 @@ func (s SimpleFileStore) Save(path string, content string) error {
 	}
 	defer func() {
 		err = file.Close()
-		panic(fmt.Sprintf("Could not close file %s: %v", file.Name(), err))
+		errlib.PanicError(err, fmt.Sprintf("Could not close file %s", file.Name()))
 	}()
 
 	_, err = file.WriteString(content)
@@ -55,9 +56,15 @@ func (s SimpleFileStore) Load(path string) (content string, err error) {
 	if err != nil {
 		return
 	}
+	defer func() {
+		err = file.Close()
+		errlib.PanicError(err, fmt.Sprintf("Could not close file %s", file.Name()))
+	}()
 
 	var contents strings.Builder
-	_, err = io.Copy(&contents, file)
+	if _, err = io.Copy(&contents, file); err != nil {
+		return "", err
+	}
 	content = contents.String()
 	return
 }
