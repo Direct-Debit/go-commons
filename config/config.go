@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
@@ -49,6 +48,10 @@ func GetStr(key string) string {
 	return Get(key).(string)
 }
 
+func GetBoolDef(key string, def bool) bool {
+	return GetDef(key, def).(bool)
+}
+
 func GetBool(key string) bool {
 	return Get(key).(bool)
 }
@@ -71,7 +74,7 @@ func GetStrList(key string) []string {
 }
 
 func GetLogLevel() log.Level {
-	levelStr := GetStr("log_level")
+	levelStr := GetStrDef("log_level", "DEBUG")
 	switch strings.ToUpper(levelStr) {
 	case "TRACE":
 		return log.TraceLevel
@@ -89,11 +92,10 @@ func GetLogLevel() log.Level {
 		return log.FatalLevel
 	default:
 		level := log.InfoLevel
-		if GetBool("debug") {
+		if GetBoolDef("debug", true) {
 			level = log.DebugLevel
 		}
-		log.Error(
-			fmt.Sprintf("CONFIG ERROR: Could not parse log_level %v, defaulting to %v level", levelStr, level))
+		log.Warnf("CONFIG WARNING: Could not parse log_level %v, defaulting to %v level", levelStr, level)
 		return level
 	}
 }
