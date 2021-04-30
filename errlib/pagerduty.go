@@ -44,6 +44,14 @@ func (p PagerDuty) Info(s string) {
 	p.createPagerdutyAlert(s, sevInfo)
 }
 
+func (p PagerDuty) Debug(s string) {
+	return
+}
+
+func (p PagerDuty) Trace(s string) {
+	return
+}
+
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	details := event_traceback{msg}
 	event := pagerduty.V2Event{
