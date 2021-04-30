@@ -1,3 +1,4 @@
+//	RoutingKey: "82b77581eb58450dc02ee107978f8403"
 package errlib
 
 import (
