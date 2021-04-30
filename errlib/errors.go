@@ -14,23 +14,28 @@ func Error(printer func(string), err error, format string, a ...interface{}) boo
 }
 
 func FatalError(err error, format string, a ...interface{}) {
+	CreatePagerdutyAlert(err, "critical", format, a)
 	Error(fatalFunc, err, format, a)
 }
 
 func PanicError(err error, format string, a ...interface{}) {
+	CreatePagerdutyAlert(err, "critical", format, a)
 	Error(panicFunc, err, format, a)
 }
 
 // ErrorError checks if err != nil, in which case it logs the error with fmt.Sprintf(format, a) prepended
 func ErrorError(err error, format string, a ...interface{}) bool {
+	CreatePagerdutyAlert(err, "error", format, a)
 	return Error(errorFunc, err, format, a)
 }
 
 func WarnError(err error, format string, a ...interface{}) bool {
+	CreatePagerdutyAlert(err, "warning", format, a)
 	return Error(warnFunc, err, format, a)
 }
 
 func InfoError(err error, format string, a ...interface{}) bool {
+	CreatePagerdutyAlert(err, "info", format, a)
 	return Error(infoFunc, err, format, a)
 }
 
