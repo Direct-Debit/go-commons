@@ -1,8 +1,8 @@
-//	RoutingKey: "82b77581eb58450dc02ee107978f8403"
 package errlib
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/PagerDuty/go-pagerduty"
 )
@@ -59,7 +59,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		RoutingKey: p.RoutingKey,
 		Action:     "trigger",
 		Payload: &pagerduty.V2Payload{
-			Summary:  "[dps/error/DPSM]", //Add product/component/env?
+			Summary:  fmt.Sprintf("[dps/error/DPSM] in stage %s - \nFunction ARN: \"%s\", \nAws request ID: \"%s\".", strings.ToUpper(p.Environment), p.Product, p.Component),
 			Source:   "DPS Monitor",
 			Severity: severity,
 			Details:  details,
