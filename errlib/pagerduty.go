@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/PagerDuty/go-pagerduty"
+	log "github.com/sirupsen/logrus"
 )
-// TODO export vars for external use
+
 const (
-	sevFatal = "critical"
-	sevError = "error"
-	sevWarn  = "warning"
-	sevInfo  = "info"
+	PagerDutyFatal = "critical"
+	PagerDutyError = "error"
+	PagerDutyWarn  = "warning"
+	PagerDutyInfo  = "info"
 )
 
 type event_traceback struct {
@@ -27,23 +28,23 @@ type PagerDuty struct {
 }
 
 func (p PagerDuty) Fatal(s string) {
-	p.createPagerdutyAlert(s, sevFatal)
+	p.createPagerdutyAlert(s, PagerDutyFatal)
 }
 
 func (p PagerDuty) Panic(s string) {
-	p.createPagerdutyAlert(s, sevFatal)
+	p.createPagerdutyAlert(s, PagerDutyFatal)
 }
 
 func (p PagerDuty) Error(s string) {
-	p.createPagerdutyAlert(s, sevError)
+	p.createPagerdutyAlert(s, PagerDutyError)
 }
 
 func (p PagerDuty) Warn(s string) {
-	p.createPagerdutyAlert(s, sevWarn)
+	p.createPagerdutyAlert(s, PagerDutyWarn)
 }
 
 func (p PagerDuty) Info(s string) {
-	p.createPagerdutyAlert(s, sevInfo)
+	p.createPagerdutyAlert(s, PagerDutyInfo)
 }
 
 func (p PagerDuty) Debug(s string) {
@@ -58,7 +59,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	maximumSeverity, _ := Find([]string{"critical", "error", "warning", "info"}, p.SeverityLevel)
 	currentSeverity, isValid := Find([]string{"critical", "error", "warning", "info"}, severity)
 	if !isValid {
-		debugFunc(fmt.Sprintf("Invalid severity level %q passed to pagerduty logger! No pagerduty alert was created.", severity))
+		log.Errorf("Invalid severity level %q passed to pagerduty logger! No pagerduty alert was created.", severity)
 		return
 	}
 	if currentSeverity > maximumSeverity {
@@ -67,8 +68,8 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 
 	details := event_traceback{msg}
 	summary := fmt.Sprintf("[dps/error/DPSM] - %s : {", strings.ToUpper(severity))
-	summary += fmt.Sprintf(" Environment : %q ,", p.Environment)
-	summary += fmt.Sprintf(" Component : %q ,", p.Component)
+	summary += fmt.Sprintf(" Environment : %q,", p.Environment)
+	summary += fmt.Sprintf(" Component : %q,", p.Component)
 	summary += fmt.Sprintf(" Function : %q }", p.Function)
 
 	event := pagerduty.V2Event{
@@ -83,7 +84,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	}
 	resp, err := pagerduty.ManageEvent(event)
 	if err != nil {
-		debugFunc(fmt.Sprintf("Unable to create pagerduty event! %v\n%v", resp, err))
+		log.Errorf("Unable to create pagerduty event! %v\n%v", resp, err)
 	}
 }
 
