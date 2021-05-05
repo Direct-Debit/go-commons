@@ -2,7 +2,9 @@ package errlib
 
 import (
 	"fmt"
+	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/PagerDuty/go-pagerduty"
 	log "github.com/sirupsen/logrus"
@@ -16,15 +18,15 @@ const (
 )
 
 type event_traceback struct {
+	Message   string
 	Traceback string
 }
 
 type PagerDuty struct {
-	Environment   string
 	SeverityLevel string
+	LogReference  string
 	RoutingKey    string
-	Component     string
-	Function      string
+	Product       string
 }
 
 func (p PagerDuty) Fatal(s string) {
@@ -66,11 +68,8 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		return
 	}
 
-	details := event_traceback{msg}
-	summary := fmt.Sprintf("[dps/error/DPSM] - %s : {", strings.ToUpper(severity))
-	summary += fmt.Sprintf(" Environment : %q,", p.Environment)
-	summary += fmt.Sprintf(" Component : %q,", p.Component)
-	summary += fmt.Sprintf(" Function : %q }", p.Function)
+	details := event_traceback{msg, string(debug.Stack())}
+	summary := fmt.Sprintf("[%s] %s event @ %s - %s", p.Product, strings.ToUpper(severity), p.LogReference, time.Now().Format(time.RFC3339))
 
 	event := pagerduty.V2Event{
 		RoutingKey: p.RoutingKey,
