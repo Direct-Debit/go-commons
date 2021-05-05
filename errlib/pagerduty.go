@@ -56,8 +56,8 @@ func (p PagerDuty) Trace(s string) {
 }
 
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
-	maximumSeverity, _ := Find([]string{"critical", "error", "warning", "info"}, p.SeverityLevel)
-	currentSeverity, isValid := Find([]string{"critical", "error", "warning", "info"}, severity)
+	maximumSeverity, _ := Find([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, p.SeverityLevel)
+	currentSeverity, isValid := Find([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, severity)
 	if !isValid {
 		log.Errorf("Invalid severity level %q passed to pagerduty logger! No pagerduty alert was created.", severity)
 		return
