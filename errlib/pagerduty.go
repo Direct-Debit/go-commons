@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	sevFatal = "fatal"
+	sevFatal = "critical"
 	sevError = "error"
 	sevWarn  = "warning"
 	sevInfo  = "info"
@@ -19,10 +19,11 @@ type event_traceback struct {
 }
 
 type PagerDuty struct {
-	Product     string
-	Component   string
-	Environment string
-	RoutingKey  string
+	Environment   string
+	SeverityLevel string
+	RoutingKey    string
+	Component     string
+	Function      string
 }
 
 func (p PagerDuty) Fatal(s string) {
@@ -54,12 +55,27 @@ func (p PagerDuty) Trace(s string) {
 }
 
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
+	maximumSeverity, _ := Find([]string{"critical", "error", "warning", "info"}, p.SeverityLevel)
+	currentSeverity, isValid := Find([]string{"critical", "error", "warning", "info"}, severity)
+	if !isValid {
+		debugFunc(fmt.Sprintf("Invalid severity level %q passed to pagerduty logger! No pagerduty alert was created.", severity))
+		return
+	}
+	if currentSeverity > maximumSeverity {
+		return
+	}
+
 	details := event_traceback{msg}
+	summary := fmt.Sprintf("[dps/error/DPSM] - %s : {", strings.ToUpper(severity))
+	summary += fmt.Sprintf(" Environment : %q ,", p.Environment)
+	summary += fmt.Sprintf(" Component : %q ,", p.Component)
+	summary += fmt.Sprintf(" Function : %q }", p.Function)
+
 	event := pagerduty.V2Event{
 		RoutingKey: p.RoutingKey,
 		Action:     "trigger",
 		Payload: &pagerduty.V2Payload{
-			Summary:  fmt.Sprintf("[dps/error/DPSM] in stage %s - \nFunction ARN: \"%s\", \nAws request ID: \"%s\".", strings.ToUpper(p.Environment), p.Product, p.Component),
+			Summary:  summary,
 			Source:   "DPS Monitor",
 			Severity: severity,
 			Details:  details,
@@ -67,6 +83,15 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	}
 	resp, err := pagerduty.ManageEvent(event)
 	if err != nil {
-		warnFunc(fmt.Sprintf("Unable to create pagerduty event! %v\n%v", resp, err))
+		debugFunc(fmt.Sprintf("Unable to create pagerduty event! %v\n%v", resp, err))
 	}
+}
+
+func Find(slice []string, val string) (int, bool) {
+	for i, item := range slice {
+		if item == val {
+			return i, true
+		}
+	}
+	return -1, false
 }
