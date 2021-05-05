@@ -6,7 +6,7 @@ import (
 
 	"github.com/PagerDuty/go-pagerduty"
 )
-
+// TODO export vars for external use
 const (
 	sevFatal = "critical"
 	sevError = "error"
