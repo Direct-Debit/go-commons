@@ -1,11 +1,13 @@
 package errlib
 
 import (
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/PagerDuty/go-pagerduty"
 	log "github.com/sirupsen/logrus"
 )
@@ -23,10 +25,13 @@ type event_traceback struct {
 }
 
 type PagerDuty struct {
-	SeverityLevel string
-	LogReference  string
-	RoutingKey    string
-	Product       string
+	LogReference string
+	RoutingKey   string
+	Product      string
+}
+
+func getValidSeverities() []string {
+	return []string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}
 }
 
 func (p PagerDuty) Fatal(s string) {
@@ -58,13 +63,9 @@ func (p PagerDuty) Trace(s string) {
 }
 
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
-	maximumSeverity, _ := Find([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, p.SeverityLevel)
-	currentSeverity, isValid := Find([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, severity)
+	_, isValid := stdext.Contains(getValidSeverities(), severity)
 	if !isValid {
-		log.Errorf("Invalid severity level %q passed to pagerduty logger! No pagerduty alert was created.", severity)
-		return
-	}
-	if currentSeverity > maximumSeverity {
+		ErrorError(errors.New("Value Error"), "%s", fmt.Sprintf("Invalid pagerduty severity %q used when trying to create a new alert.", severity))
 		return
 	}
 
@@ -85,13 +86,4 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	if err != nil {
 		log.Errorf("Unable to create pagerduty event! %v\n%v", resp, err)
 	}
-}
-
-func Find(slice []string, val string) (int, bool) {
-	for i, item := range slice {
-		if item == val {
-			return i, true
-		}
-	}
-	return -1, false
 }
