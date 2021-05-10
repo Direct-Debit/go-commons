@@ -7,7 +7,7 @@ func SafeIdxStr(idx int, arr []string) string {
 	return ""
 }
 
-func Contains(slice []string, val string) (int, bool) {
+func FindInStrSlice(slice []string, val string) (int, bool) {
 	for k, item := range slice {
 		if item == val {
 			return k, true

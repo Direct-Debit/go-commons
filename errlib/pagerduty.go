@@ -1,7 +1,6 @@
 package errlib
 
 import (
-	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -19,7 +18,7 @@ const (
 	PagerDutyInfo  = "info"
 )
 
-type event_traceback struct {
+type EventTraceback struct {
 	Message   string
 	Traceback string
 }
@@ -30,7 +29,7 @@ type PagerDuty struct {
 	Product      string
 }
 
-func getValidSeverities() []string {
+func validPDSeverities() []string {
 	return []string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}
 }
 
@@ -54,22 +53,22 @@ func (p PagerDuty) Info(s string) {
 	p.createPagerdutyAlert(s, PagerDutyInfo)
 }
 
-func (p PagerDuty) Debug(s string) {
+func (p PagerDuty) Debug(_ string) {
 	return
 }
 
-func (p PagerDuty) Trace(s string) {
+func (p PagerDuty) Trace(_ string) {
 	return
 }
 
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
-	_, isValid := stdext.Contains(getValidSeverities(), severity)
+	_, isValid := stdext.FindInStrSlice(validPDSeverities(), severity)
 	if !isValid {
-		ErrorError(errors.New("Value Error"), "%s", fmt.Sprintf("Invalid pagerduty severity %q used when trying to create a new alert.", severity))
+		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
 		return
 	}
 
-	details := event_traceback{msg, string(debug.Stack())}
+	details := EventTraceback{msg, string(debug.Stack())}
 	summary := fmt.Sprintf("[%s] %s event @ %s - %s", p.Product, strings.ToUpper(severity), p.LogReference, time.Now().Format(time.RFC3339))
 
 	event := pagerduty.V2Event{
