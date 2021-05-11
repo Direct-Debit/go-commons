@@ -13,7 +13,7 @@ type Client struct {
 }
 
 func NewClient(topic string, env string) Client {
-	log.Trace("Setting up lambda client")
+	log.Trace("Setting up sns client")
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
