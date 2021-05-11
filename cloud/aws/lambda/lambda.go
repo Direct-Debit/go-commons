@@ -23,13 +23,13 @@ func NewClient() Client {
 	}
 }
 
-func (l Client) General(fName string, in map[string]interface{}) (out map[string]interface{}, err error) {
+func (l Client) General(fName string, in interface{}) (out map[string]interface{}, err error) {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Tracef("Invoking %s", fName)
+	log.Infof("Invoking %s", fName)
 	response, err := l.client.Invoke(&lambda.InvokeInput{
 		FunctionName: &fName,
 		Payload:      payload,
@@ -44,13 +44,13 @@ func (l Client) General(fName string, in map[string]interface{}) (out map[string
 	return result, err
 }
 
-func (l Client) GeneralAsync(fName string, in map[string]interface{}) (err error) {
+func (l Client) GeneralAsync(fName string, in interface{}) (err error) {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return err
 	}
 
-	log.Tracef("Invoking %s asynchronously", fName)
+	log.Infof("Invoking %s asynchronously", fName)
 	_, err = l.client.Invoke(&lambda.InvokeInput{
 		FunctionName:   &fName,
 		Payload:        payload,

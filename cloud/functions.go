@@ -12,8 +12,8 @@ type CdvValidator interface {
 }
 
 type FunctionCaller interface {
-	General(functionName string, in map[string]interface{}) (out map[string]interface{}, err error)
-	GeneralAsync(functionName string, in map[string]interface{}) (err error)
+	General(functionName string, in interface{}) (out map[string]interface{}, err error)
+	GeneralAsync(functionName string, in interface{}) (err error)
 	CdvValidator
 }
 
@@ -30,12 +30,12 @@ func doSetup() {
 	})
 }
 
-func CallFunc(functionName string, in map[string]interface{}) (out map[string]interface{}, err error) {
+func CallFunc(functionName string, in interface{}) (out map[string]interface{}, err error) {
 	doSetup()
 	return caller.General(functionName, in)
 }
 
-func CallAsync(functionName string, in map[string]interface{}) (err error) {
+func CallAsync(functionName string, in interface{}) (err error) {
 	doSetup()
 	return caller.GeneralAsync(functionName, in)
 }
