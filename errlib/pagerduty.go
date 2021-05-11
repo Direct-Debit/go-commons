@@ -32,6 +32,8 @@ type PagerDuty struct {
 	LogReference string
 	// The affected product
 	Product string
+	// The unique location of the affected system, preferably a hostname or FQDN.
+	Source string
 }
 
 func validPDSeverities() []string {
@@ -81,7 +83,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		Action:     "trigger",
 		Payload: &pagerduty.V2Payload{
 			Summary:  summary,
-			Source:   "Go-Commons Pagerduty Integration (Events API v2)",
+			Source:   p.Source,
 			Severity: severity,
 			Details:  details,
 		},
