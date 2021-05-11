@@ -7,10 +7,19 @@ import (
 
 var setup sync.Once
 
+type CdvValidator interface {
+	Validate(number string, branch string, accountType string) (map[string]string, error)
+}
+
 type FunctionCaller interface {
 	General(functionName string, in map[string]interface{}) (out map[string]interface{}, err error)
 	GeneralAsync(functionName string, in map[string]interface{}) (err error)
-	Validate(number string, branch string, accountType string) (map[string]string, error)
+	CdvValidator
+}
+
+// Deprecated: Rather use CdvValidator
+type FunctionProvider interface {
+	CdvValidator
 }
 
 var caller FunctionCaller
