@@ -23,10 +23,15 @@ type EventTraceback struct {
 	Traceback string
 }
 
+// PagerDuty implements methods to send notifications to pagerduty in the format:
+// [${Product}] ${Severity} event @ ${LogReference} - ${Timestamp}
 type PagerDuty struct {
+	// The Routing Key used to connect to Pagerduty
+	RoutingKey string
+	// Some kind of reference to help us know which logs to check
 	LogReference string
-	RoutingKey   string
-	Product      string
+	// The affected product
+	Product string
 }
 
 func validPDSeverities() []string {
@@ -76,7 +81,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		Action:     "trigger",
 		Payload: &pagerduty.V2Payload{
 			Summary:  summary,
-			Source:   "DPS Monitor",
+			Source:   "Go-Commons Pagerduty Integration (Events API v2)",
 			Severity: severity,
 			Details:  details,
 		},
