@@ -14,7 +14,6 @@ type CdvValidator interface {
 type FunctionCaller interface {
 	General(functionName string, in interface{}) (out map[string]interface{}, err error)
 	GeneralAsync(functionName string, in interface{}) (err error)
-	CdvValidator
 }
 
 // Deprecated: Rather use CdvValidator
@@ -22,7 +21,10 @@ type FunctionProvider interface {
 	CdvValidator
 }
 
-var caller FunctionCaller
+var caller interface {
+	CdvValidator
+	FunctionCaller
+}
 
 func doSetup() {
 	setup.Do(func() {
