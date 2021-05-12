@@ -34,6 +34,7 @@ func (s Client) attributes() map[string]*sns.MessageAttributeValue {
 }
 
 func (s Client) Publish(subject string, message string) error {
+	log.Debugf("Publishing %s to %s", subject, s.Topic)
 
 	_, err := s.snsClient.Publish(&sns.PublishInput{
 		Message:           &message,
