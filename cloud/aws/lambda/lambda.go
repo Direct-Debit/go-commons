@@ -2,6 +2,7 @@ package lambda
 
 import (
 	"encoding/json"
+	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -65,6 +66,16 @@ func (l Client) Validate(number string, branch string, accountType string) (map[
 		"branch":       branch,
 		"account_type": accountType,
 	}
-	result, err := l.General("cmn-cloudwabbit", data)
-	return result["errors"].(map[string]string), err
+	out, err := l.General("cmn-cloudwabbit", data)
+	if errlib.ErrorError(err, "Could not get cloudwabbit result") {
+		return nil, err
+	}
+
+	errs := out["errors"].(map[string]interface{})
+	result := make(map[string]string, len(errs))
+	for k, v := range errs {
+		result[k] = v.(string)
+	}
+
+	return result, nil
 }
