@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const snsMaxSubjectLength = 100
+
 const (
 	AlertFatal = "critical"
 	AlertError = "error"
@@ -75,7 +77,11 @@ func (a Alerts) createAlert(msg string, severity string) {
 		log.Errorf("Unable to create json for sns alert event: %v", err)
 	}
 
-	if err = a.Client.Publish(summary, string(body)); err != nil {
+	subj := fmt.Sprintf("%s had a %s event", a.Product, strings.ToUpper(severity))
+	if len(subj) > snsMaxSubjectLength {
+		subj = subj[:snsMaxSubjectLength]
+	}
+	if err = a.Client.Publish(subj, string(body)); err != nil {
 		log.Errorf("Failed to publish alert to SNS: %v", err)
 	}
 }
