@@ -61,7 +61,11 @@ func GetBool(key string) bool {
 }
 
 func GetInt(key string) int {
-	return Get(key).(int)
+	return int(Get(key).(int64))
+}
+
+func GetInt64(key string) int64 {
+	return Get(key).(int64)
 }
 
 func GetFloat(key string) float64 {

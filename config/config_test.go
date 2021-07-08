@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+func TestGetInt(t *testing.T) {
+	l := GetInt("test_int")
+	assert.Equal(t, 7, l)
+}
+
+func TestGetInt64(t *testing.T) {
+	l := GetInt64("test_int")
+	assert.Equal(t, int64(7), l)
+}
+
 func TestGetStrList(t *testing.T) {
 	l := GetStrList("test_str_list")
 	assert.Equal(t, 2, len(l))
