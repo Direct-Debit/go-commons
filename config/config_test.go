@@ -5,14 +5,22 @@ import (
 	"testing"
 )
 
+func TestGetInt64(t *testing.T) {
+	l := GetInt64("test_int")
+	assert.Equal(t, int64(7), l)
+}
+
 func TestGetInt(t *testing.T) {
 	l := GetInt("test_int")
 	assert.Equal(t, 7, l)
 }
 
-func TestGetInt64(t *testing.T) {
-	l := GetInt64("test_int")
-	assert.Equal(t, int64(7), l)
+func TestGetIntDef(t *testing.T) {
+	l := GetIntDef("test_int", 12)
+	assert.Equal(t, 7, l)
+
+	l = GetIntDef("missing_test_int", 12)
+	assert.Equal(t, 12, l)
 }
 
 func TestGetStrList(t *testing.T) {

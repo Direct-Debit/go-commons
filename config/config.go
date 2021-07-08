@@ -60,12 +60,20 @@ func GetBool(key string) bool {
 	return Get(key).(bool)
 }
 
-func GetInt(key string) int {
-	return int(Get(key).(int64))
-}
-
 func GetInt64(key string) int64 {
 	return Get(key).(int64)
+}
+
+func GetInt64Def(key string, def int64) int64 {
+	return GetDef(key, def).(int64)
+}
+
+func GetInt(key string) int {
+	return int(GetInt64(key))
+}
+
+func GetIntDef(key string, def int) int {
+	return int(GetInt64Def(key, int64(def)))
 }
 
 func GetFloat(key string) float64 {
