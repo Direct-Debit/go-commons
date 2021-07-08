@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
 	"strings"
@@ -67,13 +68,18 @@ func GetFloat(key string) float64 {
 	return Get(key).(float64)
 }
 
-func GetStrList(key string) []string {
-	list := conf.Get(key).([]interface{})
-	result := make([]string, len(list))
-	for i, l := range list {
-		result[i] = l.(string)
+func GetStrListDef(key string, def []string) []string {
+	val := GetDef(key, nil)
+	if val == nil {
+		return def
 	}
-	return result
+
+	return stdext.SliceInterfaceToString(val.([]interface{}))
+}
+
+func GetStrList(key string) []string {
+	list := Get(key).([]interface{})
+	return stdext.SliceInterfaceToString(list)
 }
 
 func GetLogLevel() log.Level {

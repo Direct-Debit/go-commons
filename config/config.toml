@@ -1,0 +1,8 @@
+# this TOML is to run config tests
+
+test_str_list = [
+    "element1",
+    "element2",
+]
+
+test_str_list_ints = [7, 8]

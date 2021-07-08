@@ -54,3 +54,11 @@ func (s *SqlJsonArray) Scan(src interface{}) error {
 func (s SqlJsonArray) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
+
+func SliceInterfaceToString(list []interface{}) []string {
+	result := make([]string, len(list))
+	for i, l := range list {
+		result[i] = l.(string)
+	}
+	return result
+}
