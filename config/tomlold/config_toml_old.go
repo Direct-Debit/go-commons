@@ -16,10 +16,11 @@ func NewReader() *Reader {
 }
 
 func (r Reader) Get(key string) (interface{}, error) {
-	v, err := r.GetDef(key, nil)
-	if err != nil {
-		return nil, err
+	if r.loadErr != nil {
+		return nil, r.loadErr
 	}
+
+	v := r.conf.Get(key)
 	if v == nil {
 		return nil, fmt.Errorf("no config value for %s", key)
 	}
