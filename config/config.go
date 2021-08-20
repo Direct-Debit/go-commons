@@ -1,46 +1,33 @@
 package config
 
 import (
-	"errors"
+	"github.com/Direct-Debit/go-commons/config/tomlold"
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/Direct-Debit/go-commons/stdext"
-	"github.com/pelletier/go-toml"
 	log "github.com/sirupsen/logrus"
 	"strings"
-	"sync"
 )
 
-var (
-	conf *toml.Tree
-	once sync.Once
-	lock sync.Mutex
-)
+type Provider interface {
+	GetDef(key string, def interface{}) (interface{}, error)
+	Get(key string) (interface{}, error)
+}
+
+var conf Provider = tomlold.NewReader()
+
+func SetProvider(c Provider) { conf = c }
+
+func GetProvider() Provider { return conf }
 
 func GetDef(key string, def interface{}) interface{} {
-	lock.Lock()
-	defer lock.Unlock()
-
-	once.Do(func() {
-		var err error
-		conf, err = toml.LoadFile("config.toml")
-		errlib.WarnError(err, "Error loading config")
-	})
-	if conf == (*toml.Tree)(nil) {
-		return def
-	}
-
-	val := conf.Get(key)
-	if val == nil {
-		return def
-	}
+	val, err := conf.GetDef(key, def)
+	errlib.WarnError(err, "Error reading %s config setting (defaulting to %v)", key, def)
 	return val
 }
 
 func Get(key string) interface{} {
-	v := GetDef(key, nil)
-	if v == nil {
-		errlib.FatalError(errors.New(key), "Config variable missing")
-	}
+	v, err := conf.Get(key)
+	errlib.FatalError(err, "Error reading %s config setting", key)
 	return v
 }
 
