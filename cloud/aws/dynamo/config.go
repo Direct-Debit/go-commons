@@ -39,7 +39,7 @@ func (c Config) GetDef(key string, def interface{}) (interface{}, error) {
 	var value string
 	err = dynamodbattribute.Unmarshal(item.Item["value"], &value)
 	if err != nil {
-		return def, errors.Wrap(err, "Could not unmarshal dynamo config key")
+		return def, errors.Wrap(err, "Could not unmarshal dynamo config value")
 	}
 
 	return value, nil
