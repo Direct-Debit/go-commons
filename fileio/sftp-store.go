@@ -3,6 +3,7 @@ package fileio
 import (
 	"fmt"
 	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"os"
@@ -24,19 +25,18 @@ func (S *SFTPStore) connect() error {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	conn, err := ssh.Dial("tcp", S.Address, conf)
-	if errlib.ErrorError(err, "Failed to dial ssh") {
-		return err
+	if err != nil {
+		return errors.Wrap(err, "failed to dial ssh")
 	}
 	S.client, err = sftp.NewClient(conn)
-	errlib.ErrorError(err, "Failed to create sftp client")
-	return err
+	return errors.Wrap(err, "failed to create sftp client")
 }
 
 func (S *SFTPStore) disconnect() {
 	if S.client == (*sftp.Client)(nil) {
 		return
 	}
-	errlib.ErrorError(S.client.Close(), "Could not disconnect from SFTP")
+	errlib.WarnError(S.client.Close(), "Could not disconnect from SFTP")
 }
 
 func (S *SFTPStore) Save(path string, content string) error {
@@ -46,16 +46,15 @@ func (S *SFTPStore) Save(path string, content string) error {
 	defer S.disconnect()
 
 	file, err := S.client.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
-	if errlib.ErrorError(err, "SFTP could not create file "+path) {
-		return err
+	if err != nil {
+		return errors.Wrap(err, "could not create SFTP file "+path)
 	}
 	defer func() {
-		errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+		errlib.WarnError(file.Close(), "Couldn't close SFTP file")
 	}()
 
 	_, err = file.Write([]byte(content))
-	errlib.ErrorError(err, "SFTP could not write to file "+path)
-	return err
+	return errors.Wrap(err, "could not write to SFTP file "+path)
 }
 
 func (S *SFTPStore) Load(path string) (content string, err error) {
@@ -66,16 +65,16 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 
 	file, err := S.client.OpenFile(path, os.O_RDONLY)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed to open SFTP file")
 	}
 	defer func() {
-		errlib.ErrorError(file.Close(), "Couldn't close SFTP file")
+		errlib.WarnError(file.Close(), "Couldn't close SFTP file")
 	}()
 
 	var strBuilder strings.Builder
 	_, err = file.WriteTo(&strBuilder)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed to write content to string builder")
 	}
 	return strBuilder.String(), nil
 }
@@ -101,7 +100,7 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 
 	inf, err := S.client.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to read SFTP directory")
 	}
 	subPaths = make([]FileInfo, len(inf))
 	for i, info := range inf {
