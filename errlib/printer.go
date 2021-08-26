@@ -18,6 +18,10 @@ func AddLogger(l Logger) {
 	loggers = append(loggers, l)
 }
 
+func ClearLoggers() {
+	loggers = []Logger{}
+}
+
 func fatalFunc(msg string) {
 	for _, l := range loggers {
 		l.Fatal(msg)
