@@ -1,6 +1,10 @@
 package format
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
+)
 
 func TestIntToBase36(t *testing.T) {
 	tables := []struct {
@@ -93,5 +97,32 @@ func TestCentToCommaRand(t *testing.T) {
 		if result != table.out {
 			t.Errorf("Got %s, wanted %s", result, table.out)
 		}
+	}
+}
+
+func TestDateFormats(t *testing.T) {
+	testTime := time.Date(2021, 9, 9, 9, 47, 12, 34, time.UTC)
+	tests := []struct {
+		format  string
+		timeStr string
+	}{
+		{DateShort6, "210909"},
+		{DateShort6Slashes, "21/09/09"},
+		{DateShort8, "20210909"},
+		{DateShortSlashes, "2021/09/09"},
+		{DateShortDashes, "2021-09-09"},
+		{DateTimeCompact, "210909094712"},
+		{DateTimeShort, "09/09/2021 09:47"},
+		{DateTimeShortDashes, "2021-09-09 09:47:12"},
+		{DDsMMsYYYY, "09/09/2021"},
+		{MonthYY, "Sep21"},
+	}
+
+	for _, c := range tests {
+		res := testTime.Format(c.format)
+		assert.Equal(t, c.timeStr, res)
+
+		_, err := time.Parse(c.format, c.timeStr)
+		assert.Nil(t, err)
 	}
 }
