@@ -21,7 +21,7 @@ func GetProvider() Provider { return conf }
 
 func GetDef(key string, def interface{}) interface{} {
 	val, err := conf.GetDef(key, def)
-	errlib.WarnError(err, "Error reading %s config setting (defaulting to %v)", key, def)
+	errlib.DebugError(err, "Error reading %s config setting (defaulting to %v)", key, def)
 	return val
 }
 
