@@ -25,7 +25,44 @@ func TestIsNumeric(t *testing.T) {
 	for _, table := range tables {
 		result := IsNumeric(table.in)
 		if result != table.out {
-			t.Errorf("For %s, got %v, wanted %v", table.in, result, table.out)
+			t.Errorf("For %s: got %v, wanted %v", table.in, result, table.out)
+		}
+	}
+}
+
+func TestAbs(t *testing.T) {
+	tables := []struct {
+		in  int
+		out int
+	}{
+		{0, 0},
+		{7, 7},
+		{-7, 7},
+	}
+
+	for _, table := range tables {
+		result := Abs(table.in)
+		if result != table.out {
+			t.Errorf("For %d: got %d, wanted %d", table.in, result, table.out)
+		}
+	}
+}
+
+func TestRoundTo(t *testing.T) {
+	tables := []struct {
+		x        float64
+		decimals int
+		out      float64
+	}{
+		{0, 0, 0},
+		{0.3, 0, 0},
+		{2387.9699997, 2, 2387.97},
+	}
+
+	for _, table := range tables {
+		result := RoundTo(table.x, table.decimals)
+		if result != table.out {
+			t.Errorf("For %f, %d: got %f, wanted %f", table.x, table.decimals, result, table.out)
 		}
 	}
 }
