@@ -67,3 +67,25 @@ func TestRoundTo(t *testing.T) {
 		}
 	}
 }
+
+func TestCentToRand(t *testing.T) {
+	tables := []struct {
+		cent int
+		rand float64
+	}{
+		{0, 0},
+		{30, 0.3},
+		{70, 0.7},
+		{238796, 2387.96},
+		{238797, 2387.97},
+		{1000, 10},
+		{10000, 100},
+	}
+
+	for _, table := range tables {
+		result := CentToRand(table.cent)
+		if result != table.rand {
+			t.Errorf("For %d: got %f, wanted %f", table.cent, result, table.rand)
+		}
+	}
+}
