@@ -45,10 +45,15 @@ func (c Client) getQueueURL(queue string) (*string, error) {
 	return c.Queues[queue], nil
 }
 
+// Attr accepts a Nil map if no additional attributes should be set
 func (c Client) SendMessage(queue string, message string, attr Attributes) error {
 	queueUrl, err := c.getQueueURL(queue)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
+	}
+
+	if attr == nil {
+		attr = make(Attributes)
 	}
 
 	attr["Env"] = &sqs.MessageAttributeValue{
