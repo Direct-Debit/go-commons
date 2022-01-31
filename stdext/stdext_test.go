@@ -1,6 +1,9 @@
 package stdext
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestIsNumeric(t *testing.T) {
 	tables := []struct {
@@ -88,4 +91,22 @@ func TestCentToRand(t *testing.T) {
 			t.Errorf("For %d: got %f, wanted %f", table.cent, result, table.rand)
 		}
 	}
+}
+
+func TestStrSet(t *testing.T) {
+	s := make(StrSet)
+	s.Add("hh")
+	s.Add("ah")
+	s.Add("bh")
+	s.Remove("bh")
+	s.Remove("yh")
+
+	assert.True(t, s.Has("hh"))
+	assert.True(t, s.Has("ah"))
+	assert.False(t, s.Has("bh"))
+	assert.False(t, s.Has("xh"))
+	assert.False(t, s.Has("yh"))
+
+	assert.Equal(t, len(s), 2)
+	assert.Equal(t, len(s.ToSlice()), 2)
 }
