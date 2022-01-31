@@ -68,3 +68,16 @@ func (c Client) SendMessage(queue string, message string, attr Attributes) error
 	})
 	return errors.Wrapf(err, "failed to send message to SQS queue %v", queue)
 }
+
+func (c Client) DeleteMessage(queue string, receiptHandle string) error {
+	queueUrl, err := c.getQueueURL(queue)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
+	}
+
+	_, err = c.sqsClient.DeleteMessage(&sqs.DeleteMessageInput{
+		ReceiptHandle: &receiptHandle,
+		QueueUrl:      queueUrl,
+	})
+	return errors.Wrapf(err, "failed to delete message from %v", queue)
+}
