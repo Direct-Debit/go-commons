@@ -90,7 +90,7 @@ func (qc *QueueConsumer) Consume(consume ConsumerFunc) error {
 		wg.Add(1)
 		d := msg
 		go func() {
-			log.Debug("Starting goroutine for consumer on %s", qc.queue.Name)
+			log.Debugf("Starting goroutine for consumer on %s", qc.queue.Name)
 			defer wg.Done()
 
 			res, err := consume(d.Body)
