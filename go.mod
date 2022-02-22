@@ -9,6 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.0
 	github.com/sirupsen/logrus v1.7.0
+	github.com/streadway/amqp v1.0.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
