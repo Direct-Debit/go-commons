@@ -46,7 +46,11 @@ func (c Client) getQueueURL(queue string) (*string, error) {
 }
 
 // Attr accepts a Nil map if no additional attributes should be set
-func (c Client) SendMessage(queue string, message string, attr Attributes) error {
+func (c Client) SendMessage(queue string, message string, delay int, attr Attributes) error {
+	if delay > 900 {
+		delay = 900
+	}
+
 	queueUrl, err := c.getQueueURL(queue)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
@@ -64,6 +68,7 @@ func (c Client) SendMessage(queue string, message string, attr Attributes) error
 	_, err = c.sqsClient.SendMessage(&sqs.SendMessageInput{
 		MessageAttributes: attr,
 		MessageBody:       aws.String(message),
+		DelaySeconds:      aws.Int64(int64(delay)),
 		QueueUrl:          queueUrl,
 	})
 	return errors.Wrapf(err, "failed to send message to SQS queue %v", queue)
