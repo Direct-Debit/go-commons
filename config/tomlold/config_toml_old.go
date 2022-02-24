@@ -15,7 +15,15 @@ func NewReader() *Reader {
 	return &Reader{conf: conf, loadErr: err}
 }
 
-func (r Reader) Get(key string) (interface{}, error) {
+func (r *Reader) Reload() error {
+	var err error
+	r.conf, err = toml.LoadFile("config.toml")
+	if err != nil {
+		return nil
+	}
+}
+
+func (r *Reader) Get(key string) (interface{}, error) {
 	if r.loadErr != nil {
 		return nil, r.loadErr
 	}
@@ -27,7 +35,7 @@ func (r Reader) Get(key string) (interface{}, error) {
 	return v, nil
 }
 
-func (r Reader) GetDef(key string, def interface{}) (interface{}, error) {
+func (r *Reader) GetDef(key string, def interface{}) (interface{}, error) {
 	if r.loadErr != nil {
 		return def, r.loadErr
 	}

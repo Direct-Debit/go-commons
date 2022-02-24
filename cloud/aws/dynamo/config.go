@@ -42,6 +42,10 @@ func (c Config) Query(key string) (interface{}, error) {
 	return value, errors.Wrap(err, "Could not unmarshal dynamo config value")
 }
 
+func (c Config) Reload() error {
+	return nil
+}
+
 func (c Config) GetDef(key string, def interface{}) (interface{}, error) {
 	v, err := c.Query(key)
 	if err != nil {

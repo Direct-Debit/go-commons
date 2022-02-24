@@ -9,6 +9,7 @@ import (
 )
 
 type Provider interface {
+	Reload() error
 	GetDef(key string, def interface{}) (interface{}, error)
 	Get(key string) (interface{}, error)
 }
@@ -18,6 +19,10 @@ var conf Provider = tomlold.NewReader()
 func SetProvider(c Provider) { conf = c }
 
 func GetProvider() Provider { return conf }
+
+func Reload() error {
+	return conf.Reload()
+}
 
 func GetDef(key string, def interface{}) interface{} {
 	val, err := conf.GetDef(key, def)
