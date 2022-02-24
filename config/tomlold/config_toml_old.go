@@ -18,9 +18,7 @@ func NewReader() *Reader {
 func (r *Reader) Reload() error {
 	var err error
 	r.conf, err = toml.LoadFile("config.toml")
-	if err != nil {
-		return nil
-	}
+	return err
 }
 
 func (r *Reader) Get(key string) (interface{}, error) {
