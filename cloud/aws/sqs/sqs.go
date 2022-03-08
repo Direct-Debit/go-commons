@@ -1,6 +1,7 @@
 package sqs
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -85,4 +86,30 @@ func (c Client) DeleteMessage(queue string, receiptHandle string) error {
 		QueueUrl:      queueUrl,
 	})
 	return errors.Wrapf(err, "failed to delete message from %v", queue)
+}
+
+func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error {
+	queueUrl, err := c.getQueueURL(queue)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
+	}
+
+	if waitTime <= 0 || waitTime > 20 {
+		return fmt.Errorf("waitTime must be between 1 and 20 seconds")
+	}
+
+	for {
+		output, err := c.sqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
+			MaxNumberOfMessages: aws.Int64(10),
+			QueueUrl:            queueUrl,
+			WaitTimeSeconds:     aws.Int64(int64(waitTime)),
+		})
+		if err != nil {
+			return errors.Wrap(err, "failed to receive sqs messages")
+		}
+
+		for _, m := range output.Messages {
+			msgs <- m
+		}
+	}
 }
