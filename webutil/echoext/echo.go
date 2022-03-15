@@ -8,6 +8,12 @@ import (
 )
 
 func ErrorHandlerJSON(err error, c echo.Context) {
+	if c.Response().Committed {
+		// workaround to multiple error handler calls:
+		// https://github.com/labstack/echo/issues/1948#issuecomment-1068045153
+		return
+	}
+
 	var msg interface{}
 
 	code := http.StatusInternalServerError
@@ -16,6 +22,7 @@ func ErrorHandlerJSON(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 		msg = he.Message
+		errlib.DebugError(err, "A client error has occurred")
 	} else {
 		errlib.ErrorError(err, "An internal server error occurred")
 	}
