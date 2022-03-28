@@ -1,12 +1,12 @@
 package format
 
 import (
-	"errors"
 	"fmt"
-	"github.com/Direct-Debit/go-commons/errlib"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/Direct-Debit/go-commons/errlib"
 )
 
 const (
@@ -20,6 +20,7 @@ const (
 	DateTimeShortDashes = "2006-01-02 15:04:05"
 	DDsMMsYYYY          = "02/01/2006"
 	MonthYY             = "Jan06"
+	MMYY                = "0106"
 )
 
 func CentToCommaRand(cent int) string {
@@ -30,7 +31,7 @@ func CentToCommaRand(cent int) string {
 
 func intToBase36Digit(i int) (string, error) {
 	if i < 0 || i >= 36 {
-		return "", errors.New(fmt.Sprintf("Can't convert %v to base 36 digit", i))
+		return "", fmt.Errorf("can't convert %v to base 36 digit", i)
 	}
 	if i < 10 {
 		return strconv.Itoa(i), nil
@@ -73,7 +74,7 @@ func base36DigitToInt(d rune) (int, error) {
 	if d >= '0' && d <= '9' {
 		return int(d - '0'), nil
 	}
-	return 0, errors.New(fmt.Sprintf("Can't read %c as base 36 digit", d))
+	return 0, fmt.Errorf("can't read %c as base 36 digit", d)
 }
 
 // Convert a base36 to int where A-Z represent digits with values 10-35
