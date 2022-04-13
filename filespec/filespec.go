@@ -192,6 +192,19 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 			if err != nil {
 				return errors.Wrapf(err, "could not parse struct type to string")
 			}
+		case reflect.Bool:
+			switch tag.Type {
+			case "N":
+				value = "1"
+				if !fieldValue.Bool() {
+					value = "0"
+				}
+			case "A", "AN":
+				value = "Y"
+				if !fieldValue.Bool() {
+					value = "N"
+				}
+			}
 		}
 
 		switch tag.Type {
