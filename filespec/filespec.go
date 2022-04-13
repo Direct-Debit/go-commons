@@ -125,13 +125,17 @@ func structValToStr(val reflect.Value, tag RecordTag) string {
 	switch val.Type() {
 	case reflect.TypeOf(time.Time{}):
 		date := val.Interface().(time.Time)
-		switch tag.Length() {
-		case 10:
-			return date.Format(format.DateShortSlashes)
-		case 8:
-			return date.Format(format.DateShort8)
-		default:
-			return date.Format(format.DateShort6)
+		if tag.Format != "" {
+			return date.Format(tag.Format)
+		} else {
+			switch tag.Length() {
+			case 10:
+				return date.Format(format.DateShortSlashes)
+			case 8:
+				return date.Format(format.DateShort8)
+			default:
+				return date.Format(format.DateShort6)
+			}
 		}
 	}
 	errlib.FatalError(
