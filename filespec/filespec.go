@@ -195,13 +195,19 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 		}
 
 		switch tag.Type {
-		case "N", "D":
+		case "N":
 			value = fmt.Sprintf("%0*s", tag.Length(), value)
 			_, err = strconv.Atoi(value)
 			if err != nil && !strings.Contains(value, "TEST") {
 				return errors.Wrapf(err, "could not convert integer value from %s", fieldType.Name)
 			}
-		case "AN":
+		case "C":
+			value = fmt.Sprintf("%0*s", tag.Length(), value)
+			_, err = strconv.ParseFloat(value, 64)
+			if err != nil && !strings.Contains(value, "TEST") {
+				return errors.Wrapf(err, "could not convert float value from %s", fieldType.Name)
+			}
+		case "A", "AN":
 			value = strings.ToUpper(value)
 			switch tag.Format {
 			case "align-right":
