@@ -3,19 +3,21 @@ package filespec
 import (
 	"errors"
 	"fmt"
-	"github.com/Direct-Debit/go-commons/errlib"
-	"github.com/Direct-Debit/go-commons/format"
-	log "github.com/sirupsen/logrus"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/Direct-Debit/go-commons/format"
+	log "github.com/sirupsen/logrus"
 )
 
 type RecordTag struct {
-	Start int
-	End   int
-	Type  string
+	Start  int
+	End    int
+	Type   string
+	Format string
 }
 
 func ParseRecordTag(f reflect.StructField) (RecordTag, error) {
@@ -34,9 +36,10 @@ func ParseRecordTag(f reflect.StructField) (RecordTag, error) {
 	}
 
 	return RecordTag{
-		Start: start,
-		End:   end,
-		Type:  f.Tag.Get("type"),
+		Start:  start,
+		End:    end,
+		Type:   f.Tag.Get("type"),
+		Format: f.Tag.Get("format"),
 	}, nil
 }
 
@@ -48,13 +51,19 @@ func parseStruct(field reflect.Value, strVal string, tag RecordTag) (err error) 
 	switch field.Type() {
 	case reflect.TypeOf(time.Time{}):
 		var timeVal time.Time
-		switch tag.Length() {
-		case 6:
-			timeVal, err = time.Parse(format.DateShort6, strVal)
-		case 8:
-			timeVal, err = time.Parse(format.DateShort8, strVal)
-		default:
-			err = errors.New(fmt.Sprintf("invalid time length: %d", tag.Length()))
+		if tag.Format != "" {
+			timeVal, err = time.Parse(tag.Format, strVal)
+		} else {
+			switch tag.Length() {
+			case 6:
+				timeVal, err = time.Parse(format.DateShort6, strVal)
+			case 8:
+				timeVal, err = time.Parse(format.DateShort8, strVal)
+			case 4:
+				timeVal, err = time.Parse(format.MMYY, strVal)
+			default:
+				err = fmt.Errorf("invalid time length: %d", tag.Length())
+			}
 		}
 		field.Set(reflect.ValueOf(timeVal))
 	default:
@@ -171,7 +180,12 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 			}
 		case "AN":
 			value = strings.ToUpper(value)
-			value = fmt.Sprintf("%-*s", tag.Length(), value)
+			switch tag.Format {
+			case "align-right":
+				value = fmt.Sprintf("% *s", tag.Length(), value)
+			default:
+				value = fmt.Sprintf("%-*s", tag.Length(), value) // Default to left align
+			}
 		}
 
 		for idx, c := range value {
