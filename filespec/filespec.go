@@ -2,6 +2,7 @@ package filespec
 
 import (
 	"fmt"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/pkg/errors"
 	"reflect"
 	"strconv"
@@ -186,7 +187,13 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 		case reflect.String:
 			value = fieldValue.String()
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			value = strconv.FormatInt(fieldValue.Int(), 10)
+			switch tag.Type {
+			case "C":
+				fVal := stdext.RoundTo(float64(fieldValue.Int())/100, 2)
+				value = fmt.Sprintf("%.2f", fVal)
+			default:
+				value = strconv.FormatInt(fieldValue.Int(), 10)
+			}
 		case reflect.Struct:
 			value, err = structValToStr(fieldValue, tag)
 			if err != nil {
