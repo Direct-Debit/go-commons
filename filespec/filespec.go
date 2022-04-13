@@ -1,16 +1,14 @@
 package filespec
 
 import (
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/Direct-Debit/go-commons/format"
-	log "github.com/sirupsen/logrus"
 )
 
 type RecordTag struct {
@@ -28,11 +26,11 @@ func ParseRecordTag(f reflect.StructField) (RecordTag, error) {
 
 	start, err := strconv.Atoi(positions[0])
 	if err != nil {
-		return RecordTag{}, err
+		return RecordTag{}, errors.Wrapf(err, "could not parse field start index")
 	}
 	end, err := strconv.Atoi(positions[1])
 	if err != nil {
-		return RecordTag{}, err
+		return RecordTag{}, errors.Wrapf(err, "could not parse field end index")
 	}
 
 	return RecordTag{
@@ -47,29 +45,31 @@ func (r RecordTag) Length() int {
 	return r.End - r.Start + 1
 }
 
-func parseStruct(field reflect.Value, strVal string, tag RecordTag) (err error) {
+func parseStruct(field reflect.Value, strVal string, tag RecordTag) error {
 	switch field.Type() {
 	case reflect.TypeOf(time.Time{}):
-		var timeVal time.Time
-		if tag.Format != "" {
-			timeVal, err = time.Parse(tag.Format, strVal)
-		} else {
+		timeFormat := tag.Format
+		if len(timeFormat) == 0 {
 			switch tag.Length() {
 			case 6:
-				timeVal, err = time.Parse(format.DateShort6, strVal)
+				timeFormat = format.DateShort6
 			case 8:
-				timeVal, err = time.Parse(format.DateShort8, strVal)
+				timeFormat = format.DateShort8
 			case 4:
-				timeVal, err = time.Parse(format.MMYY, strVal)
+				timeFormat = format.MMYY
 			default:
-				err = fmt.Errorf("invalid time length: %d", tag.Length())
+				return fmt.Errorf("invalid time length: %d", tag.Length())
 			}
+		}
+		timeVal, err := time.Parse(timeFormat, strVal)
+		if err != nil {
+			return errors.Wrapf(err, "could not parse time %s with %s", strVal, timeFormat)
 		}
 		field.Set(reflect.ValueOf(timeVal))
 	default:
-		err = errors.New("unsupported struct in parse")
+		return errors.New("unsupported struct in parse")
 	}
-	return err
+	return nil
 }
 
 func ParseRecord(line string, target interface{}) error {
@@ -85,7 +85,9 @@ func ParseRecord(line string, target interface{}) error {
 		fieldType := targetType.Field(i)
 
 		tag, err := ParseRecordTag(fieldType)
-		errlib.FatalError(err, "Invalid tag")
+		if err != nil {
+			return errors.Wrapf(err, "invalid tag on %s", fieldType.Name)
+		}
 
 		strVal := line[tag.Start-1 : tag.End]
 
@@ -100,49 +102,59 @@ func ParseRecord(line string, target interface{}) error {
 		case reflect.Struct:
 			err = parseStruct(field, strVal, tag)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "could not parse struct for %s", fieldType.Name)
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			intVal, err := strconv.ParseInt(strVal, 10, 64)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "could not parse int for %s", fieldType.Name)
 			}
 			field.SetInt(intVal)
 		case reflect.Bool:
-			intVal, err := strconv.ParseInt(strVal, 10, 64)
-			if err != nil {
-				return err
+			switch tag.Type {
+			case "N":
+				intVal, err := strconv.ParseInt(strVal, 10, 64)
+				if err != nil {
+					return errors.Wrapf(err, "could not parse bool for %s", fieldType.Name)
+				}
+				field.SetBool(intVal > 0)
+			case "AN", "A":
+				field.SetBool(true)
+				val := strings.ToLower(strings.TrimSpace(strVal))
+				for _, s := range []string{
+					"n", "no",
+					"f", "false",
+					"0",
+				} {
+					if s == val {
+						field.SetBool(false)
+					}
+				}
 			}
-			field.SetBool(intVal > 0)
 		}
-
 	}
 
 	return nil
 }
 
-func structValToStr(val reflect.Value, tag RecordTag) string {
+func structValToStr(val reflect.Value, tag RecordTag) (string, error) {
 	switch val.Type() {
 	case reflect.TypeOf(time.Time{}):
 		date := val.Interface().(time.Time)
 		if tag.Format != "" {
-			return date.Format(tag.Format)
+			return date.Format(tag.Format), nil
 		} else {
 			switch tag.Length() {
 			case 10:
-				return date.Format(format.DateShortSlashes)
+				return date.Format(format.DateShortSlashes), nil
 			case 8:
-				return date.Format(format.DateShort8)
+				return date.Format(format.DateShort8), nil
 			default:
-				return date.Format(format.DateShort6)
+				return date.Format(format.DateShort6), nil
 			}
 		}
 	}
-	errlib.FatalError(
-		fmt.Errorf("couldn't convert %v to string", val.Type()),
-		"Error with generating file line",
-	)
-	panic("Fatal error did not fatally exit.")
+	return "", fmt.Errorf("couldn't convert %v to string", val.Type())
 }
 
 func GenerateLine(source interface{}, builder *strings.Builder) error {
@@ -151,7 +163,10 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 
 	lastFieldType := sourceType.Field(sourceType.NumField() - 1)
 	lastTag, err := ParseRecordTag(lastFieldType)
-	errlib.FatalError(err, "Couldn't parse line tag")
+	if err != nil {
+		return errors.Wrapf(err, "invalid tag on %s", lastFieldType.Name)
+	}
+
 	line := make([]rune, lastTag.End+1) // +1 for newline character
 	for i := range line {
 		line[i] = ' '
@@ -162,7 +177,9 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 		fieldValue := sourceValue.Field(i)
 
 		tag, err := ParseRecordTag(fieldType)
-		errlib.FatalError(err, "Couldn't parse line tag")
+		if err != nil {
+			return errors.Wrapf(err, "invalid tag on %s", fieldType.Name)
+		}
 
 		var value string
 		switch fieldValue.Kind() {
@@ -171,7 +188,10 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			value = strconv.FormatInt(fieldValue.Int(), 10)
 		case reflect.Struct:
-			value = structValToStr(fieldValue, tag)
+			value, err = structValToStr(fieldValue, tag)
+			if err != nil {
+				return errors.Wrapf(err, "could not parse struct type to string")
+			}
 		}
 
 		switch tag.Type {
@@ -179,14 +199,13 @@ func GenerateLine(source interface{}, builder *strings.Builder) error {
 			value = fmt.Sprintf("%0*s", tag.Length(), value)
 			_, err = strconv.Atoi(value)
 			if err != nil && !strings.Contains(value, "TEST") {
-				log.Error(err, "Failed for field "+fieldType.Name)
-				return err
+				return errors.Wrapf(err, "could not convert integer value from %s", fieldType.Name)
 			}
 		case "AN":
 			value = strings.ToUpper(value)
 			switch tag.Format {
 			case "align-right":
-				value = fmt.Sprintf("% *s", tag.Length(), value)
+				value = fmt.Sprintf("%*s", tag.Length(), value)
 			default:
 				value = fmt.Sprintf("%-*s", tag.Length(), value) // Default to left align
 			}
