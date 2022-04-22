@@ -90,6 +90,12 @@ func ParseRecord(line string, target interface{}) error {
 			return errors.Wrapf(err, "invalid tag on %s", fieldType.Name)
 		}
 
+		if len(line) < tag.End {
+			tag.End = len(line)
+			if tag.End < tag.Start-1 {
+				return fmt.Errorf("line too short: %s", line)
+			}
+		}
 		strVal := line[tag.Start-1 : tag.End]
 
 		switch field.Kind() {
