@@ -3,13 +3,14 @@ package fileio
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"strings"
 )
 
 type S3Store struct {
@@ -73,16 +74,16 @@ func (s S3Store) Move(path string, targetDir string) error {
 		return err
 	}
 
-	_, err = s.s3.DeleteObject(&s3.DeleteObjectInput{
+	return s.Delete(path)
+}
+
+func (s S3Store) Delete(path string) error {
+	_, err := s.s3.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
 	})
 	errlib.ErrorError(err, "Couldn't delete s3 file")
 	return err
-}
-
-func (s S3Store) Delete(path string) error {
-	panic("implement me!")
 }
 
 func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
