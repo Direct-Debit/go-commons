@@ -2,6 +2,8 @@ package dynamo
 
 import (
 	"fmt"
+	"github.com/Direct-Debit/go-commons/cloud"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"math"
 	"math/rand"
 	"strings"
@@ -95,6 +97,45 @@ func putItemsWithBackoff(items map[string][]*dynamodb.WriteRequest, backoff int)
 			putItemsWithBackoff(out.UnprocessedItems, backoff)
 		})
 	}
+}
+
+func GetItemsLambda(keys []Item, table *string, batchSize int) []Item {
+	res := make([]Item, 0, len(keys))
+	output := make(chan []Item)
+
+	for i := 0; i < len(keys); i += batchSize {
+		max := i + batchSize
+		if max > len(keys) {
+			max = len(keys)
+		}
+		go invokeGetItemsLambda(keys[i:max], table, output)
+	}
+
+	for len(res) != len(keys) {
+		res = append(res, <-output...)
+		log.Debugf("GetItemsLambda has returned %d items out of %d", len(res), len(keys))
+	}
+
+	return res
+}
+
+func invokeGetItemsLambda(items []Item, table *string, output chan []Item) {
+	input := map[string]interface{}{
+		"items": items,
+		"table": *table,
+	}
+	result, err := cloud.CallFunc("cmn-dynamo-get-items", input)
+	errlib.ErrorError(err, "failed to invoke dynamo-get-items lambda")
+
+	var resp []Item
+	for _, item := range result["items"].([]interface{}) {
+		dynamoItem, err := dynamodbattribute.MarshalMap(item)
+		if errlib.ErrorError(err, "failed to marshal attribute values") {
+			continue
+		}
+		resp = append(resp, dynamoItem)
+	}
+	output <- resp
 }
 
 func GetItems(items []Item, table *string) []Item {
