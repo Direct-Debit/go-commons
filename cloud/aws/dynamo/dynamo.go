@@ -103,17 +103,20 @@ func GetItemsLambda(keys []Item, table *string, batchSize int) []Item {
 	res := make([]Item, 0, len(keys))
 	output := make(chan []Item)
 
+	callCount := 0
 	for i := 0; i < len(keys); i += batchSize {
 		max := i + batchSize
 		if max > len(keys) {
 			max = len(keys)
 		}
 		go invokeGetItemsLambda(keys[i:max], table, output)
+		callCount++
 	}
 
-	for len(res) != len(keys) {
+	for i := 1; i <= callCount; i++ {
 		res = append(res, <-output...)
 		log.Debugf("GetItemsLambda has returned %d items out of %d", len(res), len(keys))
+		log.Infof("GetItemsLambda received %d results from %d calls", i, callCount)
 	}
 
 	return res
