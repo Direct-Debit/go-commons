@@ -3,6 +3,7 @@ package dynamo
 import (
 	"fmt"
 	"github.com/Direct-Debit/go-commons/cloud"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/pkg/errors"
 	"math"
@@ -231,6 +232,7 @@ type CountOutput struct {
 }
 
 func CountAll(initialInput *dynamodb.QueryInput) (CountOutput, error) {
+	initialInput.Select = aws.String(dynamodb.SelectCount)
 	res := CountOutput{}
 
 	queryDone := false
