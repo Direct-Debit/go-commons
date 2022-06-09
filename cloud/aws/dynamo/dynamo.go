@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Direct-Debit/go-commons/cloud"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/pkg/errors"
 	"math"
 	"math/rand"
 	"strings"
@@ -216,6 +217,34 @@ func QueryAll(initialInput *dynamodb.QueryInput) ([]Item, error) {
 		for _, item := range result.Items {
 			res = append(res, item)
 		}
+
+		queryDone = len(result.LastEvaluatedKey) == 0
+		initialInput.ExclusiveStartKey = result.LastEvaluatedKey
+	}
+
+	return res, nil
+}
+
+type CountOutput struct {
+	Count        int64
+	ScannedCount int64
+}
+
+func CountAll(initialInput *dynamodb.QueryInput) (CountOutput, error) {
+	res := CountOutput{}
+
+	queryDone := false
+	db := Connect()
+	for !queryDone {
+		result, err := db.Query(initialInput)
+		if err != nil {
+			return res, err
+		}
+		if result.Count == (*int64)(nil) || result.ScannedCount == (*int64)(nil) {
+			return CountOutput{}, errors.New("count or scanned count is nil")
+		}
+		res.Count += *result.Count
+		res.ScannedCount += *result.ScannedCount
 
 		queryDone = len(result.LastEvaluatedKey) == 0
 		initialInput.ExclusiveStartKey = result.LastEvaluatedKey
