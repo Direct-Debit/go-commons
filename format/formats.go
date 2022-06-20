@@ -2,11 +2,10 @@ package format
 
 import (
 	"fmt"
+	"github.com/Direct-Debit/go-commons/errlib"
 	"math"
 	"strconv"
 	"strings"
-
-	"github.com/Direct-Debit/go-commons/errlib"
 )
 
 const (
@@ -21,6 +20,7 @@ const (
 	DDsMMsYYYY          = "02/01/2006"
 	MonthYY             = "Jan06"
 	MMYY                = "0106"
+	RFC3339NanoFixed    = "2006-01-02T15:04:05.000000000Z07:00"
 )
 
 func CentToCommaRand(cent int) string {
