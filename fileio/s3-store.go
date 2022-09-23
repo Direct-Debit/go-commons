@@ -60,9 +60,14 @@ func (s S3Store) Load(path string) (content string, err error) {
 }
 
 func (s S3Store) Move(path string, targetDir string) error {
-	_, name := s.Split(path)
+	dir, name := s.Split(path)
 	if targetDir[len(targetDir)-1] != '/' {
 		targetDir += "/"
+	}
+
+	if dir == targetDir {
+		log.Infof("source and target dir are the same (%s), skipping move...", dir)
+		return nil
 	}
 
 	_, err := s.s3.CopyObject(&s3.CopyObjectInput{
@@ -123,6 +128,6 @@ func (s S3Store) FullName(path string) (fullPath string, err error) {
 func (s S3Store) Split(path string) (directory string, filename string) {
 	parts := strings.Split(path, "/")
 	filename = parts[len(parts)-1]
-	directory = strings.TrimSuffix(path, "/"+filename)
+	directory = strings.TrimSuffix(path, filename)
 	return directory, filename
 }
