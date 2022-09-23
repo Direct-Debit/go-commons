@@ -66,7 +66,7 @@ func (s S3Store) Move(path string, targetDir string) error {
 	}
 
 	if dir == targetDir {
-		log.Infof("source and target dir are the same (%s), skipping move...", dir)
+		log.Infof("Skipping move because source and target dir are the same (%s)", dir)
 		return nil
 	}
 
