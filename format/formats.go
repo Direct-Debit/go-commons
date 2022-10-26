@@ -20,6 +20,7 @@ const (
 	DDsMMsYYYY          = "02/01/2006"
 	MonthYY             = "Jan06"
 	MMYY                = "0106"
+	YYYYdMM             = "2006-01"
 	RFC3339NanoFixed    = "2006-01-02T15:04:05.000000000Z07:00"
 )
 
