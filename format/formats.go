@@ -30,6 +30,20 @@ func CentToCommaRand(cent int) string {
 	return fmt.Sprintf("%d,%02d", r, c)
 }
 
+func AnyAmountToCent(amount string) (int, error) {
+	replacements := []string{",", "", ".", "", "R", "", " ", ""}
+	if len(replacements)%2 != 0 {
+		return 0, fmt.Errorf("uneven arguments for replacer %d, this is a devloper error", len(replacements))
+	}
+	replacer := strings.NewReplacer(replacements...)
+
+	res, err := strconv.Atoi(replacer.Replace(amount))
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert %s to cents: %w", amount, err)
+	}
+	return res, nil
+}
+
 func intToBase36Digit(i int) (string, error) {
 	if i < 0 || i >= 36 {
 		return "", fmt.Errorf("can't convert %v to base 36 digit", i)

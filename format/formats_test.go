@@ -1,6 +1,7 @@
 package format
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -97,6 +98,36 @@ func TestCentToCommaRand(t *testing.T) {
 		if result != table.out {
 			t.Errorf("Got %s, wanted %s", result, table.out)
 		}
+	}
+}
+
+func TestAnyAmountToCent(t *testing.T) {
+	tables := []struct {
+		in  string
+		out int
+	}{
+		{"0,00", 0},
+		{"0,07", 7},
+		{"0,10", 10},
+		{"0,17", 17},
+		{"0,36", 36},
+		{"0,42", 42},
+		{"0,49", 49},
+		{"0,72", 72},
+		{"4,42", 442},
+		{"12,96", 1296},
+		{"13,22", 1322},
+		{"10000,00", 1000000},
+		{"2,194.50", 219450},
+		{"0.00", 0},
+	}
+
+	for _, table := range tables {
+		result, err := AnyAmountToCent(table.in)
+		log.Infof("%s -> %d", table.in, result)
+
+		assert.Nil(t, err)
+		assert.Equal(t, table.out, result)
 	}
 }
 
