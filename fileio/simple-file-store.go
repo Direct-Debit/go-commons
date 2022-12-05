@@ -3,13 +3,14 @@ package fileio
 import (
 	"errors"
 	"fmt"
-	"github.com/Direct-Debit/go-commons/errlib"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/Direct-Debit/go-commons/errlib"
+	log "github.com/sirupsen/logrus"
 )
 
 type SimpleFileStore struct {
@@ -94,7 +95,8 @@ func (s SimpleFileStore) Move(path string, targetDir string) error {
 }
 
 func (s SimpleFileStore) Delete(path string) error {
-	return os.Remove(path)
+	fPath := s.fullPath(path)
+	return os.Remove(fPath)
 }
 
 func (s SimpleFileStore) List(path string) (subPaths []FileInfo, err error) {
