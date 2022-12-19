@@ -62,3 +62,7 @@ func SliceInterfaceToString(list []interface{}) []string {
 	}
 	return result
 }
+
+func Ptr[T any](val T) *T {
+	return &val
+}

@@ -110,3 +110,10 @@ func TestStrSet(t *testing.T) {
 	assert.Equal(t, len(s), 2)
 	assert.Equal(t, len(s.ToSlice()), 2)
 }
+
+func TestPtr(t *testing.T) {
+	assert.Equal(t, "str", *(Ptr("str")))
+	assert.Equal(t, 0, *(Ptr(0)))
+	assert.Equal(t, 0.5, *(Ptr(0.5)))
+	assert.Equal(t, true, *(Ptr(true)))
+}
