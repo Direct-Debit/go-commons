@@ -19,7 +19,8 @@ const (
 )
 
 type EventTraceback struct {
-	Message   string
+	Time      string
+	LogInfo   string
 	Traceback string
 }
 
@@ -75,8 +76,12 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		return
 	}
 
-	details := EventTraceback{msg, string(debug.Stack())}
-	summary := fmt.Sprintf("[%s] %s event @ %s - %s", p.Product, strings.ToUpper(severity), p.LogReference, time.Now().Format(time.RFC3339))
+	summary := fmt.Sprintf("[%s] %s", p.Product, msg)
+	details := EventTraceback{
+		Time:      time.Now().Format(time.RFC3339),
+		LogInfo:   fmt.Sprintf("%s event @ %s", strings.ToUpper(severity), p.LogReference),
+		Traceback: string(debug.Stack()),
+	}
 
 	event := pagerduty.V2Event{
 		RoutingKey: p.RoutingKey,
