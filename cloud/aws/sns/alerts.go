@@ -3,11 +3,12 @@ package sns
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PagerDuty/go-pagerduty"
-	log "github.com/sirupsen/logrus"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/PagerDuty/go-pagerduty"
+	log "github.com/sirupsen/logrus"
 )
 
 const snsMaxSubjectLength = 100
@@ -20,7 +21,8 @@ const (
 )
 
 type EventTraceback struct {
-	Message   string
+	Time      string
+	LogInfo   string
 	Traceback string
 }
 
@@ -62,8 +64,12 @@ func (a Alerts) Debug(_ string) {}
 func (a Alerts) Trace(_ string) {}
 
 func (a Alerts) createAlert(msg string, severity string) {
-	details := EventTraceback{msg, string(debug.Stack())}
-	summary := fmt.Sprintf("[%s] %s event @ %s - %s", a.Product, strings.ToUpper(severity), a.LogReference, time.Now().Format(time.RFC3339))
+	summary := fmt.Sprintf("[%s] %s", a.Product, msg)
+	details := EventTraceback{
+		Time:      time.Now().Format(time.RFC3339),
+		LogInfo:   fmt.Sprintf("%s event @ %s", strings.ToUpper(severity), a.LogReference),
+		Traceback: string(debug.Stack()),
+	}
 
 	event := pagerduty.V2Payload{
 		Summary:  summary,
