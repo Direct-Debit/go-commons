@@ -117,3 +117,11 @@ func TestPtr(t *testing.T) {
 	assert.Equal(t, 0.5, *(Ptr(0.5)))
 	assert.Equal(t, true, *(Ptr(true)))
 }
+
+func TestRoundUp(t *testing.T) {
+	assert.Equal(t, 0, RoundUp(0, 500))
+	assert.Equal(t, 10_500_00, RoundUp(10_345_10, 500_00))
+	assert.Equal(t, 10_500_00, RoundUp(10_500_00, 500_00))
+	assert.Equal(t, -10_000_00, RoundUp(-10_345_10, 500_00))
+	assert.Equal(t, -10_500_00, RoundUp(-10_500_00, 500_00))
+}

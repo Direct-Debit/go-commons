@@ -16,9 +16,20 @@ func Min(x, y int) int {
 	return x
 }
 
-func Abs(x int) int {
+func Abs[T Integer](x T) T {
 	if x < 0 {
 		return -x
 	}
 	return x
+}
+
+func RoundUp[T Integer](x, increment T) T {
+	part := x % increment
+	if part == T(0) {
+		return x
+	}
+	if part < 0 {
+		return x - part
+	}
+	return x + (increment - part)
 }
