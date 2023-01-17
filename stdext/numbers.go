@@ -27,3 +27,26 @@ type RealNumber interface {
 type Number interface {
 	Complex | RealNumber
 }
+
+// Max returns the larger of x or y.
+func Max[T RealNumber](x, y T) T {
+	if x < y {
+		return y
+	}
+	return x
+}
+
+// Min returns the smaller of x or y.
+func Min[T RealNumber](x, y T) T {
+	if x > y {
+		return y
+	}
+	return x
+}
+
+func Abs[T RealNumber](x T) T {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
