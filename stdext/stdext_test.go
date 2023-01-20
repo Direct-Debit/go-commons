@@ -134,12 +134,12 @@ func TestCachedCall(t *testing.T) {
 	}
 
 	m := make(map[string]string)
-	v, err := CachedCall(f, m, "i")
+	v, err := CachedCall(f, "i", m)
 	assert.NoError(t, err)
 	assert.Equal(t, "i", v)
 	assert.Equal(t, 1, len(m))
 
-	v, err = CachedCall(f, m, "i")
+	v, err = CachedCall(f, "i", m)
 	assert.NoError(t, err)
 	assert.Equal(t, "i", v)
 }
