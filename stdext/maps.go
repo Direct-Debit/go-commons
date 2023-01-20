@@ -23,7 +23,7 @@ func JoinMaps(target map[string]interface{}, source map[string]interface{}) {
 
 // CachedCall tries to get a cached value from the given caching map before calling f and caching the result.
 // If f returns an error, CachedCall will return f's output without caching it.
-// CachedCall does not generate any errors of its own.
+// CachedCall does not generate any errors of its own, but panics if cache is nil.
 func CachedCall[K comparable, V any](f func(K) (V, error), cache map[K]V, key K) (V, error) {
 	// Check cache and return if found
 	if v, ok := cache[key]; ok {

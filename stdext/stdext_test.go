@@ -3,6 +3,7 @@ package stdext
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestIsNumeric(t *testing.T) {
@@ -124,4 +125,21 @@ func TestRoundUp(t *testing.T) {
 	assert.Equal(t, 10_500_00, RoundUp(10_500_00, 500_00))
 	assert.Equal(t, -10_000_00, RoundUp(-10_345_10, 500_00))
 	assert.Equal(t, -10_500_00, RoundUp(-10_500_00, 500_00))
+}
+
+func TestCachedCall(t *testing.T) {
+	f := func(i string) (string, error) {
+		time.Sleep(time.Second)
+		return i, nil
+	}
+
+	m := make(map[string]string)
+	v, err := CachedCall(f, m, "i")
+	assert.NoError(t, err)
+	assert.Equal(t, "i", v)
+	assert.Equal(t, 1, len(m))
+
+	v, err = CachedCall(f, m, "i")
+	assert.NoError(t, err)
+	assert.Equal(t, "i", v)
 }
