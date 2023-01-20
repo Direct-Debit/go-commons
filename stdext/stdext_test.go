@@ -143,3 +143,15 @@ func TestCachedCall(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "i", v)
 }
+
+func TestSafeSlice(t *testing.T) {
+	slice := []int{1, 2, 3, 4, 5}
+
+	assert.Equal(t, 2, len(SafeSlice(slice, 2, 4)))
+	assert.Equal(t, 0, len(SafeSlice(slice, 4, 3)))
+	assert.Equal(t, 2, len(SafeSlice(slice, 3, 100)))
+	assert.Equal(t, 2, len(SafeSlice(slice, -6, 2)))
+	assert.Equal(t, 5, len(SafeSlice(slice, -6, 100)))
+	assert.Equal(t, 0, len(SafeSlice(slice, 32, 100)))
+	assert.Equal(t, 0, len(SafeSlice(slice, -7, -1)))
+}
