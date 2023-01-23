@@ -155,3 +155,14 @@ func TestSafeSlice(t *testing.T) {
 	assert.Equal(t, 0, len(SafeSlice(slice, 32, 100)))
 	assert.Equal(t, 0, len(SafeSlice(slice, -7, -1)))
 }
+
+func TestJoinMaps(t *testing.T) {
+	mt := map[string]any{"a": 1, "b": "2"}
+	ms := map[string]any{"b": 2, "c": "3"}
+
+	JoinMaps(mt, ms)
+	assert.Equal(t, 3, len(mt))
+	assert.Equal(t, 1, mt["a"])
+	assert.Equal(t, 2, mt["b"])
+	assert.Equal(t, "3", mt["c"])
+}

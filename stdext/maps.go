@@ -1,12 +1,5 @@
 package stdext
 
-func MapStrStrGetDef(m map[string]string, k string, d string) string {
-	if v, ok := m[k]; ok {
-		return v
-	}
-	return d
-}
-
 // MapGetDef returns the value at m[k] if k is in m, otherwise it returns d
 func MapGetDef[K comparable, V any](m map[K]V, k K, d V) V {
 	if v, ok := m[k]; ok {
@@ -15,7 +8,10 @@ func MapGetDef[K comparable, V any](m map[K]V, k K, d V) V {
 	return d
 }
 
-func JoinMaps(target map[string]interface{}, source map[string]interface{}) {
+// JoinMaps copies the values of the source map into the target map,
+// overriding the target map if there is a key conflict.
+// The target map is modified in place.
+func JoinMaps[K comparable, V any](target map[K]V, source map[K]V) {
 	for k, v := range source {
 		target[k] = v
 	}
@@ -52,4 +48,8 @@ func Group[K comparable, V any](slice []V, key func(V) K) map[K][]V {
 		}
 	}
 	return m
+}
+
+func MapStrStrGetDef(m map[string]string, k string, d string) string {
+	return MapGetDef(m, k, d)
 }
