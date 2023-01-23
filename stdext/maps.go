@@ -40,3 +40,16 @@ func CachedCall[K comparable, V any](f func(K) (V, error), input K, cache map[K]
 	cache[input] = v
 	return v, nil
 }
+
+func Group[K comparable, V any](slice []V, key func(V) K) map[K][]V {
+	m := make(map[K][]V)
+	for _, v := range slice {
+		k := key(v)
+		if s, ok := m[k]; ok {
+			m[k] = append(s, v)
+		} else {
+			m[k] = []V{v}
+		}
+	}
+	return m
+}
