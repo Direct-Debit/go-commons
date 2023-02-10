@@ -67,3 +67,14 @@ func SafeIdxStr(idx int, arr []string) string {
 func FindInStrSlice(slice []string, val string) (int, bool) {
 	return FindInSlice(slice, val)
 }
+
+// ChanToSlice listens to the given channel and appends all the messages to a slice.
+// ChanToSlice blocks until the channel is closed.
+// If the channel is never closed, ChanToSlice will block forever.
+func ChanToSlice[T any](c chan T) []T {
+	result := make([]T, 0)
+	for t := range c {
+		result = append(result, t)
+	}
+	return result
+}
