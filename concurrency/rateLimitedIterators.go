@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+// CPSToDuration converts Calls Per Second to a duration.
+//
+//   - 1 Calls Per Second should return a duration of 1 second.
+//   - 1000 Calls Per Second should return a duration of 1 millisecond.
 func CPSToDuration(callsPerSecond int) time.Duration {
 	return time.Duration(int64(time.Second) / int64(callsPerSecond))
 }
