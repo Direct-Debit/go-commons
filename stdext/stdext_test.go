@@ -166,3 +166,17 @@ func TestJoinMaps(t *testing.T) {
 	assert.Equal(t, 2, mt["b"])
 	assert.Equal(t, "3", mt["c"])
 }
+
+func BenchmarkFlatten(b *testing.B) {
+	lists := make([][]int, 10_000)
+	for i := range lists {
+		lists[i] = make([]int, i+10)
+		for j := range lists[i] {
+			lists[i][j] = i + j
+		}
+	}
+
+	for i := 0; i < b.N; i++ {
+		Flatten(lists)
+	}
+}

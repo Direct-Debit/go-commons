@@ -78,3 +78,15 @@ func ChanToSlice[T any](c chan T) []T {
 	}
 	return result
 }
+
+func Flatten[T any](slices [][]T) []T {
+	size := 0
+	for _, s := range slices {
+		size += len(s)
+	}
+	result := make([]T, 0, size)
+	for _, s := range slices {
+		result = append(result, s...)
+	}
+	return result
+}
