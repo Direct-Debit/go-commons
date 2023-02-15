@@ -17,6 +17,7 @@ func CPSToDuration(callsPerSecond int) time.Duration {
 // RateLimitedConcurrent will concurrently call the transform function on the given input once per tick at the given rate.
 // If rate is less than or equal to 0, it will be set to one nanosecond.
 // If the input slice is of size N, RateLimitedConcurrent spawns at least N goroutines.
+//
 // The bool return value for transform indicates whether the transform executed successfully.
 // Only successful transform results will be included in the result slice.
 // No ordering is guaranteed in the result slice.
@@ -53,10 +54,11 @@ func RateLimitedConcurrent[I any, O any](rate time.Duration, input []I, transfor
 	return stdext.ChanToSlice(results)
 }
 
-// RateLimitedSerial will concurrently call the transform function on the given input at most once per tick at the given rate.
+// RateLimitedSerial will call the transform function on the given input at most once per tick at the given rate.
 // If rate is less than or equal to 0, it will be set to one nanosecond.
 // The calls to the transform functions aren't concurrent,
 // the next call to transform will only be called once the previous call has finished.
+//
 // The bool return value for transform indicates whether the transform executed successfully.
 // Only successful transform results will be included in the result slice.
 // The order of the output array will correspond to the order of the input array.

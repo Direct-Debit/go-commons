@@ -7,6 +7,7 @@ import (
 
 // SimpleParallel executes the transform function in a go routine for every input.
 // If the input slice is of size N, SimpleParallel spawns at least N goroutines.
+//
 // The bool return value for transform indicates whether the transform executed successfully.
 // Only successful transform results will be included in the result slice.
 // No ordering is guaranteed in the result slice.
