@@ -1,10 +1,6 @@
 # go-commons
 Common Functionality to share between go projects 
 
-Installation:
-```
-export GOPRIVATE=github.com/Direct-Debit
-go get -u github.com/Direct-Debit/go-commons
-```
+This is now a public project, so no more special usage instructions.
 
-Github removed https from repo cloning for some reason. So you might want to read this too: https://golang.org/doc/faq#git_https
+The code belongs to Direct Debit. If you do use it, there are no guarantees.
