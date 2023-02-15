@@ -90,3 +90,44 @@ func Flatten[T any](slices [][]T) []T {
 	}
 	return result
 }
+
+// ChunkifyByCount returns a slice containing n slices of roughly equal size.
+// The slices will contain the copied elements from the given slice divided up in FIFO fashion.
+func ChunkifyByCount[T any](slice []T, n int) [][]T {
+	chunks := Max(n, 1)
+	length := len(slice)
+
+	chunkSize := length / chunks
+	specialChunks := length - chunkSize*chunks
+
+	result := make([][]T, 0, chunks)
+	for i, start := 0, 0; start < length; i++ {
+		end := Min(start+chunkSize, length)
+		if i < specialChunks {
+			end += 1
+		}
+
+		result = append(result, slice[start:end])
+		start = end
+	}
+	return result
+}
+
+// ChunkifyBySize returns a slice containing slices, each with at most chunkSize elements.
+// The slices will contain the copied elements from the given slice divided up in FIFO fashion.
+func ChunkifyBySize[T any](slice []T, chunkSize int) [][]T {
+	length := len(slice)
+
+	chunks := length / chunkSize
+	for chunkSize*chunks > length {
+		chunks += 1
+	}
+
+	result := make([][]T, 0, chunks)
+	for start := 0; start < length; {
+		end := Min(start+chunkSize, length)
+		result = append(result, slice[start:end])
+		start = end
+	}
+	return result
+}

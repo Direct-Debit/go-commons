@@ -1,6 +1,7 @@
 package stdext
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -179,4 +180,28 @@ func BenchmarkFlatten(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Flatten(lists)
 	}
+}
+
+func TestChunkify(t *testing.T) {
+	list := make([]int, 247)
+	for i := range list {
+		list[i] = i + 1
+	}
+
+	lists := ChunkifyBySize(list, 32)
+	for _, l := range lists {
+		assert.LessOrEqual(t, len(l), 32)
+		fmt.Println(l)
+	}
+	assert.Equal(t, 8, len(lists))
+
+	lists = ChunkifyByCount(list, 32)
+	for _, l := range lists {
+		assert.LessOrEqual(t, len(l), 8)
+		fmt.Println(l)
+	}
+	assert.Equal(t, 32, len(lists))
+
+	flattened := Flatten(lists)
+	assert.ElementsMatch(t, list, flattened)
 }
