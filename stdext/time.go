@@ -17,3 +17,26 @@ func FixRFC3339Nano(in string) string {
 	RFC3339NanoFixed := "2006-01-02T15:04:05.000000000Z07:00"
 	return t.Format(RFC3339NanoFixed)
 }
+
+type TimeRange struct {
+	Start *time.Time
+	End   *time.Time
+}
+
+func NewTimeRange(start, end time.Time) TimeRange {
+	return TimeRange{&start, &end}
+}
+
+func (t TimeRange) StartAt() (time.Time, bool) {
+	if t.Start == nil || t.Start == (*time.Time)(nil) {
+		return time.Time{}, false
+	}
+	return *t.Start, true
+}
+
+func (t TimeRange) EndAt() (time.Time, bool) {
+	if t.Start == nil || t.Start == (*time.Time)(nil) {
+		return time.Time{}, false
+	}
+	return *t.Start, true
+}
