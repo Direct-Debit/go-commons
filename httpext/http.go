@@ -16,7 +16,6 @@ func GetClient() *http.Client {
 			Timeout: time.Minute,
 		}
 	})
-	client.CloseIdleConnections()
 	return client
 }
 

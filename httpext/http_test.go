@@ -22,8 +22,11 @@ func TestGet(t *testing.T) {
 		go func() {
 			resp, err := Get("http://" + address + "/wait")
 
+			fmt.Println("Client: Response received")
 			assert.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			err = resp.Body.Close()
+			assert.NoError(t, err)
 		}()
 
 		openFiles := func() int {
