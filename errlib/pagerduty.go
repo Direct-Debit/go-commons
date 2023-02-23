@@ -18,6 +18,14 @@ const (
 	PagerDutyInfo  = "info"
 )
 
+var severityMap = map[string]int{
+	PagerDutyFatal: 1000,
+	PagerDutyError: 100,
+	PagerDutyWarn:  10,
+	PagerDutyInfo:  1,
+	"":             0,
+}
+
 type EventTraceback struct {
 	Message   string
 	Time      string
@@ -36,10 +44,21 @@ type PagerDuty struct {
 	Product string
 	// The unique location of the affected system, preferably a hostname or FQDN.
 	Source string
+	// The minimum severity to raise alerts for
+	MinSeverity string
+	// Tha maximum severity to set when raising alerts.
+	// If MaxSeverity is less than MinSeverity, alerts will still be raised at MaxSeverity
+	MaxSeverity string
 }
 
-func validPDSeverities() []string {
-	return []string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}
+// The list of all severities in order of most to least severe
+func validSeverity(severity string) bool {
+	_, valid := stdext.FindInSlice([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, severity)
+	return valid
+}
+
+func severeEnough(severity string, minSeverity string) bool {
+	return severityMap[severity] >= severityMap[minSeverity]
 }
 
 func (p PagerDuty) Fatal(s string) {
@@ -67,10 +86,18 @@ func (p PagerDuty) Debug(_ string) {}
 func (p PagerDuty) Trace(_ string) {}
 
 func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
-	_, isValid := stdext.FindInStrSlice(validPDSeverities(), severity)
-	if !isValid {
+	if !validSeverity(severity) {
 		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
 		return
+	}
+	if !severeEnough(severity, p.MinSeverity) {
+		log.Infof("%s is not severe enough, skipping alert", severity)
+	}
+	if len(p.MaxSeverity) == 0 {
+		p.MaxSeverity = PagerDutyFatal
+	}
+	if validSeverity(p.MaxSeverity) && severityMap[severity] < severityMap[p.MaxSeverity] {
+		severity = p.MaxSeverity
 	}
 
 	summary := fmt.Sprintf("[%s] %s", p.Product, msg)
