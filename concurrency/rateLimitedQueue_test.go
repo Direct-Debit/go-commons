@@ -31,7 +31,6 @@ func TestRateLimitedQueue(t *testing.T) {
 			m.done = time.Now()
 			m.success = true
 			log.Infof("Pop: queue item %s popped at %v", m.id, m.done)
-			log.Infof("Queue State: %+v", queue.State())
 			results = append(results, m)
 		})
 		pops.Done()
@@ -92,6 +91,5 @@ func pushQueueItem(q *RateLimitedQueue[queueMeasurement], id string) (queueMeasu
 	} else {
 		log.Infof("Push: queue item %s pushed at %v", item.id, item.created)
 	}
-	log.Infof("Queue State: %+v", q.State())
 	return item, err == nil
 }

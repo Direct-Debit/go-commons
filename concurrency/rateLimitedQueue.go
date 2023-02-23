@@ -81,62 +81,57 @@ func (r *RateLimitedQueue[T]) PushBlocking(i T) {
 }
 
 // Pop pops a message off the queue,
-// returning the zero value of T and false if no message becomes available during the timeout.
-func (r *RateLimitedQueue[T]) Pop(timeout time.Duration) (T, bool) {
+// returning the zero value of T and false if no message becomes available (or if the queue is closed) during the timeout.
+// The last bool value indicates whether the queue is still open.
+func (r *RateLimitedQueue[T]) Pop(timeout time.Duration) (T, bool, bool) {
 	after := time.After(timeout)
 	select {
-	case t := <-r.outChannel:
-		return t, true
+	case t, ok := <-r.outChannel:
+		return t, ok, ok
 	case <-after:
 		var nothing T
-		return nothing, false
+		return nothing, false, true
 	}
 }
 
-// PopBlocking pops a message off the queue, but blocks until a message is available.
-func (r *RateLimitedQueue[T]) PopBlocking() T {
-	return <-r.outChannel
+// PopBlocking pops a message off the queue, but blocks until a message is available or the queue is closed.
+// The bool value indicates whether the queue is still open.
+func (r *RateLimitedQueue[T]) PopBlocking() (T, bool) {
+	v, ok := <-r.outChannel
+	return v, ok
 }
 
 // PopMultiple waits the duration of the timeout, and returns all the messages that was available in the timeout.
-func (r *RateLimitedQueue[T]) PopMultiple(timeout time.Duration) []T {
+// The bool value indicates whether the queue is still open.
+func (r *RateLimitedQueue[T]) PopMultiple(timeout time.Duration) ([]T, bool) {
 	after := time.After(timeout)
 	available := make([]T, 0)
+	open := false
 	for {
 		select {
-		case t := <-r.outChannel:
-			available = append(available, t)
+		case t, ok := <-r.outChannel:
+			open = ok
+			if ok {
+				available = append(available, t)
+			}
 		case <-after:
-			return available
+			return available, open
 		}
 	}
 }
 
-// Close closes the queue.
+// Close starts closing the queue. Pushing any messages onto the queue after calling Close, will panic.
+//
+// Messages can still be popped until there are none left.
+// The queue will only be considered closed once all the messages have been popped.
 func (r *RateLimitedQueue[T]) Close() {
 	close(r.inChannel)
 }
 
 // Consume executes the given function for every message in the queue as it is made available.
-// Consume blocks until the queue is closed.
+// Consume blocks until the queue is closed with Close and all messages have been popped.
 func (r *RateLimitedQueue[T]) Consume(f func(T)) {
 	for t := range r.outChannel {
 		f(t)
-	}
-}
-
-type QueueState struct {
-	InputBufferSize int
-	InputBufferUsed int
-	ReadyMessageMax int
-	ReadyMessages   int
-}
-
-func (r *RateLimitedQueue[T]) State() QueueState {
-	return QueueState{
-		InputBufferSize: cap(r.inChannel),
-		InputBufferUsed: len(r.inChannel),
-		ReadyMessageMax: cap(r.outChannel) + 1,
-		ReadyMessages:   len(r.outChannel) + 1,
 	}
 }
