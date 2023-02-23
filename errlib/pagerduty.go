@@ -46,7 +46,7 @@ type PagerDuty struct {
 	Source string
 	// The minimum severity to raise alerts for
 	MinSeverity string
-	// Tha maximum severity to set when raising alerts.
+	// The maximum severity to set when raising alerts.
 	// If MaxSeverity is less than MinSeverity, alerts will still be raised at MaxSeverity
 	MaxSeverity string
 }
@@ -90,7 +90,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
 		return
 	}
-	if !severeEnough(severity, p.MinSeverity) {
+	if validSeverity(p.MinSeverity) && !severeEnough(severity, p.MinSeverity) {
 		log.Infof("%s is not severe enough, skipping alert", severity)
 	}
 	if len(p.MaxSeverity) == 0 {
