@@ -52,13 +52,12 @@ func (r *RateLimitedQueue[T]) run(rate time.Duration) {
 	for range ticker.C {
 		select {
 		case t, ok := <-r.inChannel:
-			if !ok {
+			if ok {
+				r.outChannel <- t
+			} else {
 				close(r.outChannel)
 				ticker.Stop()
 			}
-			go func() {
-				r.outChannel <- t
-			}()
 		default:
 		}
 	}
@@ -123,5 +122,21 @@ func (r *RateLimitedQueue[T]) Close() {
 func (r *RateLimitedQueue[T]) Consume(f func(T)) {
 	for t := range r.outChannel {
 		f(t)
+	}
+}
+
+type QueueState struct {
+	InputBufferSize int
+	InputBufferUsed int
+	ReadyMessageMax int
+	ReadyMessages   int
+}
+
+func (r *RateLimitedQueue[T]) State() QueueState {
+	return QueueState{
+		InputBufferSize: cap(r.inChannel),
+		InputBufferUsed: len(r.inChannel),
+		ReadyMessageMax: cap(r.outChannel) + 1,
+		ReadyMessages:   len(r.outChannel) + 1,
 	}
 }
