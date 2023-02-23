@@ -35,8 +35,8 @@ func (t TimeRange) StartAt() (time.Time, bool) {
 }
 
 func (t TimeRange) EndAt() (time.Time, bool) {
-	if t.Start == nil || t.Start == (*time.Time)(nil) {
+	if t.End == nil || t.End == (*time.Time)(nil) {
 		return time.Time{}, false
 	}
-	return *t.Start, true
+	return *t.End, true
 }
