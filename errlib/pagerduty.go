@@ -96,7 +96,7 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	if len(p.MaxSeverity) == 0 {
 		p.MaxSeverity = PagerDutyFatal
 	}
-	if validSeverity(p.MaxSeverity) && severityMap[severity] < severityMap[p.MaxSeverity] {
+	if validSeverity(p.MaxSeverity) && severityMap[severity] > severityMap[p.MaxSeverity] {
 		severity = p.MaxSeverity
 	}
 
