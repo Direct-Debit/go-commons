@@ -54,10 +54,10 @@ func MapStrStrGetDef(m map[string]string, k string, d string) string {
 	return MapGetDef(m, k, d)
 }
 
-func MapToSlice[K comparable, V any, T any](m map[K]V, flatten func(K) T) []T {
+func MapToSlice[K comparable, V any, T any](m map[K]V, flatten func(K, V) T) []T {
 	result := make([]T, 0, len(m))
-	for k := range m {
-		result = append(result, flatten(k))
+	for k, v := range m {
+		result = append(result, flatten(k, v))
 	}
 	return result
 }
