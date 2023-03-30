@@ -25,6 +25,11 @@ func FindInSlice[T comparable](slice []T, val T) (int, bool) {
 	return -1, false
 }
 
+func InSlice[T comparable](slice []T, val T) bool {
+	_, found := FindInSlice(slice, val)
+	return found
+}
+
 func Filter[T any](slice []T, keep func(T) bool) []T {
 	result := make([]T, 0, len(slice))
 	for _, t := range slice {
