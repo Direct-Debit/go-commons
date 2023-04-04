@@ -2,6 +2,7 @@ package tomlold
 
 import (
 	"fmt"
+
 	"github.com/pelletier/go-toml"
 )
 
@@ -12,6 +13,11 @@ type Reader struct {
 
 func NewReader() *Reader {
 	conf, err := toml.LoadFile("config.toml")
+	return &Reader{conf: conf, loadErr: err}
+}
+
+func NewReaderWithPath(path string) *Reader {
+	conf, err := toml.LoadFile(path)
 	return &Reader{conf: conf, loadErr: err}
 }
 
