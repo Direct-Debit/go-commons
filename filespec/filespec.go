@@ -138,6 +138,18 @@ func ParseRecord(line string, target interface{}) error {
 					}
 				}
 			}
+		case reflect.Float64:
+			floatVal, err := strconv.ParseFloat(strVal, 64)
+			if err != nil {
+				return errors.Wrapf(err, "could not parse float for %s", fieldType.Name)
+			}
+			field.SetFloat(floatVal)
+		case reflect.Float32:
+			floatVal, err := strconv.ParseFloat(strVal, 32)
+			if err != nil {
+				return errors.Wrapf(err, "could not parse float for %s", fieldType.Name)
+			}
+			field.SetFloat(floatVal)
 		}
 	}
 
