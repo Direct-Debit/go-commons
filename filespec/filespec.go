@@ -51,6 +51,7 @@ func parseStruct(field reflect.Value, strVal string, tag RecordTag) error {
 	case reflect.TypeOf(time.Time{}):
 		if len(strings.TrimSpace(strVal)) == 0 {
 			field.Set(reflect.ValueOf(time.Time{}))
+			return nil
 		}
 
 		timeFormat := tag.Format
