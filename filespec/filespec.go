@@ -49,6 +49,10 @@ func (r RecordTag) Length() int {
 func parseStruct(field reflect.Value, strVal string, tag RecordTag) error {
 	switch field.Type() {
 	case reflect.TypeOf(time.Time{}):
+		if len(strings.TrimSpace(strVal)) == 0 {
+			field.Set(reflect.ValueOf(time.Time{}))
+		}
+
 		timeFormat := tag.Format
 		if len(timeFormat) == 0 {
 			switch tag.Length() {
