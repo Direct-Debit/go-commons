@@ -66,3 +66,11 @@ func SliceInterfaceToString(list []interface{}) []string {
 func Ptr[T any](val T) *T {
 	return &val
 }
+
+func DerefSafe[T any](t *T) T {
+	if t == nil || t == (*T)(nil) {
+		var nothing T
+		return nothing
+	}
+	return *t
+}

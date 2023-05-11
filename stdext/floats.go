@@ -3,7 +3,7 @@ package stdext
 import "math"
 
 // Round to a certain number of digits. Might be prone to rounding errors
-func RoundTo(x float64, decimals int) float64 {
+func RoundTo[T Float](x T, decimals int) T {
 	m := math.Pow10(decimals)
-	return math.Round(x*m) / m
+	return T(math.Round(float64(x)*m) / m)
 }
