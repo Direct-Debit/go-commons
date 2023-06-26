@@ -3,6 +3,7 @@ package stdext
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func Test_FixRFC3339Nano(t *testing.T) {
@@ -35,4 +36,13 @@ func Test_FixRFC3339Nano(t *testing.T) {
 		r := FixRFC3339Nano(c.in)
 		assert.Equal(t, c.expected, r)
 	}
+}
+
+func TestDateEqual(t *testing.T) {
+	t1 := time.Now()
+	t2 := time.Now().Add(time.Minute)
+
+	assert.True(t, DateEqual(t1, t2))
+	t2 = t2.AddDate(0, 0, 1)
+	assert.False(t, DateEqual(t1, t2))
 }

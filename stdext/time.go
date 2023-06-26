@@ -9,6 +9,12 @@ func Date(in time.Time) time.Time {
 	return time.Date(in.Year(), in.Month(), in.Day(), 0, 0, 0, 0, time.UTC)
 }
 
+func DateEqual(t1, t2 time.Time) bool {
+	y1, m1, d1 := t1.Date()
+	y2, m2, d2 := t2.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
+}
+
 func FixRFC3339Nano(in string) string {
 	t, err := time.Parse(time.RFC3339Nano, in)
 	if err != nil {
