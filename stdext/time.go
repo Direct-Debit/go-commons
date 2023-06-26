@@ -47,6 +47,8 @@ func (t TimeRange) EndAt() (time.Time, bool) {
 	return *t.End, true
 }
 
+// Includes returns true if the check time falls between start and end,
+// with start date inclusive and end date exclusive.
 func (t TimeRange) Includes(check time.Time) bool {
 	start, startOK := t.StartAt()
 	end, endOK := t.EndAt()
