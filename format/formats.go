@@ -19,6 +19,7 @@ const (
 	DateTimeShortDashes = "2006-01-02 15:04:05"
 	DDsMMsYYYY          = "02/01/2006"
 	DDdMMdYYYY          = "02-01-2006"
+	DDdMMMdYY           = "02-JAN-06"
 	MonthYY             = "Jan06"
 	MMYY                = "0106"
 	YYYYdMM             = "2006-01"
