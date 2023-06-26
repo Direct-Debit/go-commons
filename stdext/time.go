@@ -46,3 +46,18 @@ func (t TimeRange) EndAt() (time.Time, bool) {
 	}
 	return *t.End, true
 }
+
+func (t TimeRange) Includes(check time.Time) bool {
+	start, startOK := t.StartAt()
+	end, endOK := t.EndAt()
+	if !startOK && !endOK {
+		return true
+	}
+	if !startOK {
+		return end.After(check)
+	}
+	if !endOK {
+		return !start.After(check)
+	}
+	return !start.After(check) && end.After(check)
+}
