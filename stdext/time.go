@@ -1,6 +1,7 @@
 package stdext
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -62,4 +63,16 @@ func (t TimeRange) Includes(check time.Time) bool {
 		return !start.After(check)
 	}
 	return !start.After(check) && end.After(check)
+}
+
+func (t TimeRange) String() string {
+	start := "the beginning of time"
+	if s, ok := t.StartAt(); ok {
+		start = s.Format(time.RFC3339)
+	}
+	end := "the end of time"
+	if e, ok := t.EndAt(); ok {
+		end = e.Format(time.RFC3339)
+	}
+	return fmt.Sprintf("from %s to %s", start, end)
 }
