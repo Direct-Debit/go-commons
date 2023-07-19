@@ -65,14 +65,22 @@ func (t TimeRange) Includes(check time.Time) bool {
 	return !start.After(check) && end.After(check)
 }
 
-func (t TimeRange) String() string {
+func (t TimeRange) StartString(format string) string {
 	start := "the beginning of time"
 	if s, ok := t.StartAt(); ok {
-		start = s.Format(time.RFC3339)
+		start = s.Format(format)
 	}
+	return start
+}
+
+func (t TimeRange) EndString(format string) string {
 	end := "the end of time"
 	if e, ok := t.EndAt(); ok {
-		end = e.Format(time.RFC3339)
+		end = e.Format(format)
 	}
-	return fmt.Sprintf("from %s to %s", start, end)
+	return end
+}
+
+func (t TimeRange) String() string {
+	return fmt.Sprintf("from %s to %s", t.StartString(time.RFC3339), t.EndString(time.RFC3339))
 }
