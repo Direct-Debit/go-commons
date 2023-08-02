@@ -2,12 +2,12 @@ package sqs
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type Client struct {
@@ -99,21 +99,8 @@ func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error
 	}
 
 	for {
-		maxMsgs := 10
-		mcc := cap(msgs)
-		if mcc != 0 {
-			maxMsgs = mcc - len(msgs)
-			if maxMsgs < 1 {
-				time.Sleep(time.Duration(waitTime) * time.Second)
-				continue
-			}
-			if maxMsgs > 10 {
-				maxMsgs = 10
-			}
-		}
-
 		output, err := c.sqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
-			MaxNumberOfMessages: aws.Int64(int64(maxMsgs)),
+			MaxNumberOfMessages: aws.Int64(int64(10)),
 			QueueUrl:            queueUrl,
 			WaitTimeSeconds:     aws.Int64(int64(waitTime)),
 		})
