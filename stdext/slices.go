@@ -67,6 +67,21 @@ func MapErr[T any, U any](slice []T, conv func(T) (U, error)) ([]U, error) {
 	return result, nil
 }
 
+// MapErrRobust creates a new slice with one element for every element in the given slice.
+// The elements in the new slice will be the monads containing return values of the conversion function conv.
+// If conv returns an error, the error part of the monad will be populated.
+// This implies that MapErrRobust does not short-circuit execution once an error occurred.
+// MapErrRobust just wraps the naive Map implementation, but with conv returning a Monad.
+func MapErrRobust[T any, U any](slice []T, conv func(T) (U, error)) []Monad[U] {
+	return Map(slice, func(i T) Monad[U] {
+		r, err := conv(i)
+		return Monad[U]{
+			Result: r,
+			Error:  err,
+		}
+	})
+}
+
 func SafeIdxStr(idx int, arr []string) string {
 	return SafeIdx(idx, arr)
 }
