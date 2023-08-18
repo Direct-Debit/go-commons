@@ -11,3 +11,12 @@ func WrapError(err error, message string, a ...any) error {
 	}
 	return fmt.Errorf("%s: %w", fmt.Sprintf(message, a...), err)
 }
+
+type Monad[R any] struct {
+	Result R
+	Error  error
+}
+
+func (m *Monad[R]) Success() bool {
+	return m.Error == nil
+}
