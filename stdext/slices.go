@@ -51,7 +51,9 @@ func Map[T any, U any](slice []T, conv func(T) U) []U {
 // MapErr creates a new slice with one element for every element in the given slice.
 // The elements in the new slice will be the return values of the conversion function conv.
 // If conv returns an error, MapErr will return an error wrapping the original error
-// and a slice of the same length as the given slice containing the elements that were successfully converted before the error occurred.
+// and a slice of the same length as the given slice
+// containing the elements that were successfully converted before the error occurred.
+// This implies that MapErr short-circuits execution once an error occurred.
 // MapErr does not generate any of its own errors.
 func MapErr[T any, U any](slice []T, conv func(T) (U, error)) ([]U, error) {
 	var err error
@@ -59,7 +61,7 @@ func MapErr[T any, U any](slice []T, conv func(T) (U, error)) ([]U, error) {
 	for i, t := range slice {
 		result[i], err = conv(t)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert element %d: %w", i, err)
+			return result, fmt.Errorf("failed to convert element %d: %w", i, err)
 		}
 	}
 	return result, nil
