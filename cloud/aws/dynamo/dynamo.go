@@ -118,7 +118,7 @@ func GetItemsLambda(keys []Item, table *string, batchSize int) []Item {
 	for i := 1; i <= callCount; i++ {
 		res = append(res, <-output...)
 		log.Debugf("GetItemsLambda has returned %d items out of %d", len(res), len(keys))
-		log.Infof("GetItemsLambda received %d results from %d calls", i, callCount)
+		log.Debugf("GetItemsLambda received %d results from %d calls", i, callCount)
 	}
 
 	return res
