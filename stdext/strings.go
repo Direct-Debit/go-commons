@@ -47,3 +47,14 @@ func ContainsOnly(s, set string) bool {
 	}
 	return true
 }
+
+// ContainsI checks whether s contains substr in a case-insensitive way.
+func ContainsI(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+}
+
+// EqualI does a case-insensitive comparison of strings.
+// It literally wraps strings.EqualFold, which has a unintuitive name IMO
+func EqualI(s1, s2 string) bool {
+	return strings.EqualFold(s1, s2)
+}
