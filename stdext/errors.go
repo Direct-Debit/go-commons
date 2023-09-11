@@ -20,3 +20,11 @@ type Monad[R any] struct {
 func (m *Monad[R]) Success() bool {
 	return m.Error == nil
 }
+
+func (m *Monad[R]) ValueSafe() R {
+	if m.Error != nil {
+		var r R
+		return r
+	}
+	return m.Result
+}
