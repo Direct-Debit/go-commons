@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Split the string into parts of max length n
+// SplitParts splits the string into parts of max length n
 func SplitParts(s string, n int) []string {
 	if len(s) == 0 {
 		return []string{}
