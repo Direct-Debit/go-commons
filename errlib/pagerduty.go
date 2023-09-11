@@ -85,19 +85,29 @@ func (p PagerDuty) Debug(_ string) {}
 
 func (p PagerDuty) Trace(_ string) {}
 
-func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
-	if !validSeverity(severity) {
-		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
-		return
-	}
+func (p PagerDuty) clampSeverity(severity string) (string, bool) {
 	if validSeverity(p.MinSeverity) && !severeEnough(severity, p.MinSeverity) {
 		log.Infof("%s is not severe enough, skipping alert", severity)
+		return "", false
 	}
 	if len(p.MaxSeverity) == 0 {
 		p.MaxSeverity = PagerDutyFatal
 	}
 	if validSeverity(p.MaxSeverity) && severityMap[severity] > severityMap[p.MaxSeverity] {
 		severity = p.MaxSeverity
+	}
+	return severity, true
+}
+
+func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
+	if !validSeverity(severity) {
+		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
+		return
+	}
+	var ok bool
+	severity, ok = p.clampSeverity(severity)
+	if !ok {
+		return
 	}
 
 	summary := fmt.Sprintf("[%s] %s", p.Product, msg)
