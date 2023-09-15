@@ -54,6 +54,8 @@ func SimpleParallelMap[K comparable, V any, O any](input map[K]V, transform func
 		wg := sync.WaitGroup{}
 
 		for k, v := range input {
+			copiedV := v
+
 			wg.Add(1)
 			go func(k K, v V) {
 				defer wg.Done()
@@ -62,7 +64,7 @@ func SimpleParallelMap[K comparable, V any, O any](input map[K]V, transform func
 				if ok {
 					resultChan <- transformResult{k, o}
 				}
-			}(k, v)
+			}(k, copiedV)
 		}
 
 		wg.Wait()
