@@ -71,5 +71,13 @@ func (l Client) Validate(number string, branch string, accountType string) (map[
 	if errlib.ErrorError(err, "Could not get cloudwabbit result") {
 		return nil, err
 	}
-	return out["errors"].(map[string]string), nil
+
+	errs := out["errors"].(map[string]any)
+	// casting out["errors"] directly to map[string]string panics, that is why we have this two-step conversion
+	result := make(map[string]string, len(errs))
+	for k, v := range errs {
+		result[k] = v.(string)
+	}
+
+	return result, nil
 }
