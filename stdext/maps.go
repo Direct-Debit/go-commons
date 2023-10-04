@@ -61,3 +61,11 @@ func MapToSlice[K comparable, V any, T any](m map[K]V, flatten func(K, V) T) []T
 	}
 	return result
 }
+
+func SliceToMap[K comparable, V any](slice []V, key func(V) K) map[K]V {
+	result := make(map[K]V, len(slice))
+	for _, v := range slice {
+		result[key(v)] = v
+	}
+	return result
+}
