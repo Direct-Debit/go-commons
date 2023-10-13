@@ -92,16 +92,24 @@ func (s S3Store) Delete(path string) error {
 }
 
 func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
-	output, err := s.s3.ListObjectsV2(&s3.ListObjectsV2Input{
+	params := &s3.ListObjectsV2Input{
 		Bucket: s.Bucket,
 		Prefix: &path,
-	})
+	}
+
+	var content []*s3.Object
+	err = s.s3.ListObjectsV2Pages(params,
+		func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+			content = append(content, page.Contents...)
+			return true
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	subPaths = make([]FileInfo, 0, len(output.Contents))
-	for _, sp := range output.Contents {
+	subPaths = make([]FileInfo, 0, len(content))
+	for _, sp := range content {
 		_, name := s.Split(*sp.Key)
 		if name == "" {
 			continue
