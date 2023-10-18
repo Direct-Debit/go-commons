@@ -37,6 +37,12 @@ func ErrorHandlerJSON(err error, c echo.Context) {
 	errlib.ErrorError(jsonErr, "Echo failed to JSON-ify error response")
 }
 
+func ErrorToJSON(c echo.Context, code int, msg string) error {
+	return c.JSON(code, map[string]string{
+		"error": msg,
+	})
+}
+
 func DecodeJSONBody(c echo.Context) (map[string]interface{}, error) {
 	m := make(map[string]interface{})
 	err := json.NewDecoder(c.Request().Body).Decode(&m)
