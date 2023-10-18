@@ -17,6 +17,13 @@ type Monad[R any] struct {
 	Error  error
 }
 
+func ToMonad[R any](result R, err error) Monad[R] {
+	return Monad[R]{
+		Result: result,
+		Error:  err,
+	}
+}
+
 func (m *Monad[R]) Success() bool {
 	return m.Error == nil
 }
@@ -27,4 +34,8 @@ func (m *Monad[R]) ValueSafe() R {
 		return r
 	}
 	return m.Result
+}
+
+func (m *Monad[R]) WrapError(message string, a ...any) error {
+	return WrapError(m.Error, message, a...)
 }
