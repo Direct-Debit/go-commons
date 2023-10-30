@@ -51,7 +51,6 @@ type PagerDuty struct {
 	MaxSeverity string
 }
 
-// The list of all severities in order of most to least severe
 func validSeverity(severity string) bool {
 	_, valid := stdext.FindInSlice([]string{PagerDutyFatal, PagerDutyError, PagerDutyWarn, PagerDutyInfo}, severity)
 	return valid

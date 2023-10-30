@@ -3,6 +3,7 @@ package sns
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -19,6 +20,23 @@ const (
 	AlertWarn  = "warning"
 	AlertInfo  = "info"
 )
+
+var severityMap = map[string]int{
+	AlertFatal: 1000,
+	AlertError: 100,
+	AlertWarn:  10,
+	AlertInfo:  1,
+	"":         0,
+}
+
+func validSeverity(severity string) bool {
+	_, valid := stdext.FindInSlice([]string{AlertFatal, AlertError, AlertWarn, AlertInfo}, severity)
+	return valid
+}
+
+func severeEnough(severity string, minSeverity string) bool {
+	return severityMap[severity] >= severityMap[minSeverity]
+}
 
 type EventTraceback struct {
 	Time      string
@@ -37,6 +55,29 @@ type Alerts struct {
 	Product string
 	// The unique location of the affected system, preferably a hostname or FQDN.
 	Source string
+	// The minimum severity to raise alerts for
+	MinSeverity string
+	// The maximum severity to set when raising alerts.
+	// If MaxSeverity is less than MinSeverity, alerts will still be raised at MaxSeverity
+	MaxSeverity string
+}
+
+func (a Alerts) clampSeverity(severity string) (string, bool) {
+	if len(a.MaxSeverity) == 0 || !validSeverity(a.MaxSeverity) {
+		a.MaxSeverity = AlertFatal
+	}
+	if len(a.MinSeverity) == 0 || !validSeverity(a.MinSeverity) {
+		a.MinSeverity = AlertInfo
+	}
+
+	if !severeEnough(severity, a.MinSeverity) {
+		log.Infof("%s is not severe enough, skipping alert", severity)
+		return "", false
+	}
+	if severityMap[severity] > severityMap[a.MaxSeverity] {
+		severity = a.MaxSeverity
+	}
+	return severity, true
 }
 
 func (a Alerts) Fatal(s string) {
@@ -64,6 +105,16 @@ func (a Alerts) Debug(_ string) {}
 func (a Alerts) Trace(_ string) {}
 
 func (a Alerts) createAlert(msg string, severity string) {
+	if !validSeverity(severity) {
+		log.Errorf("Invalid pagerduty severity %q used when trying to create a new alert.", severity)
+		return
+	}
+	var ok bool
+	severity, ok = a.clampSeverity(severity)
+	if !ok {
+		return
+	}
+
 	summary := fmt.Sprintf("[%s] %s", a.Product, msg)
 	details := EventTraceback{
 		Time:      time.Now().Format(time.RFC3339),
