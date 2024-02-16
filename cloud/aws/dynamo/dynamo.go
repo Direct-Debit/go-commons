@@ -3,6 +3,8 @@ package dynamo
 import (
 	"fmt"
 	"github.com/Direct-Debit/go-commons/cloud"
+	"github.com/Direct-Debit/go-commons/concurrency"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/pkg/errors"
@@ -168,6 +170,36 @@ func GetItems(items []Item, table *string) []Item {
 		res = append(res, subRes[*table]...)
 	}
 	return res
+}
+
+func GetItemsConcurrent(workers int, items []Item, table *string) []Item {
+	itemChunks := stdext.ChunkifyBySize(items, 100)
+	returnedChunks := concurrency.Workers(workers, itemChunks,
+		func(chunk []Item) (ret []Item, success bool) {
+			defer func() {
+				if recover() != nil {
+					ret, success = nil, false
+				}
+			}()
+
+			keys := stdext.Map(chunk,
+				func(item Item) map[string]*dynamodb.AttributeValue {
+					return item
+				},
+			)
+			keysAndAttr := &dynamodb.KeysAndAttributes{
+				Keys: keys,
+			}
+
+			log.Debugf("Getting %d items from dynamo table %s", len(chunk), *table)
+			itemsReturned := getItemsWithBackoff(
+				map[string]*dynamodb.KeysAndAttributes{*table: keysAndAttr}, 1,
+			)
+			ret, success = itemsReturned[*table], true
+			return
+		},
+	)
+	return stdext.Flatten(returnedChunks)
 }
 
 func getItemsWithBackoff(items map[string]*dynamodb.KeysAndAttributes, backoff int) map[string][]Item {
