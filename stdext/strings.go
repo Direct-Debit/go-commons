@@ -58,3 +58,17 @@ func ContainsI(s, substr string) bool {
 func EqualI(s1, s2 string) bool {
 	return strings.EqualFold(s1, s2)
 }
+
+func EllipticalTruncate(text string, maxLen int) string {
+	elipsis := "..."
+	maxPos := maxLen - len(elipsis)
+	length := len(text)
+
+	if length <= maxLen {
+		return text
+	} else if length > (maxPos) {
+		return text[:maxPos] + elipsis
+	}
+
+	return text
+}

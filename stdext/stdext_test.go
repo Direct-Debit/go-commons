@@ -2,9 +2,12 @@ package stdext
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsNumeric(t *testing.T) {
@@ -204,4 +207,33 @@ func TestChunkify(t *testing.T) {
 
 	flattened := Flatten(lists)
 	assert.ElementsMatch(t, list, flattened)
+}
+
+func TestEllipticalTruncate(t *testing.T) {
+	// Test with a string that has no spaces
+	test_string := "1234567890AJQK"
+	assert.Equal(t, "...", EllipticalTruncate(test_string, 3))
+	assert.Equal(t, "1...", EllipticalTruncate(test_string, 4))
+	assert.Equal(t, "12...", EllipticalTruncate(test_string, 5))
+	assert.Equal(t, "123456...", EllipticalTruncate(test_string, 9))
+	assert.Equal(t, "1234567...", EllipticalTruncate(test_string, 10))
+	assert.Equal(t, "12345678...", EllipticalTruncate(test_string, 11))
+	assert.Equal(t, test_string, EllipticalTruncate(test_string, len(test_string)))
+
+	// Test with a string that has spaces
+	test_string = "1 2 3 45 6 7 8 9 0 A J Q K"
+	assert.Equal(t, "1 2 3 45...", EllipticalTruncate(test_string, 11))
+	test_string = "1 2 3 4 5 6 7 8 9 0 A J Q K"
+	assert.Equal(t, "1 2 3 4 ...", EllipticalTruncate(test_string, 11))
+
+	// Test with a long string
+	long_string := strings.Repeat("a ", 2024)
+	assert.Equal(t, long_string[:1021]+"...", EllipticalTruncate(long_string, 1024))
+
+	long_string = "[UnitTests] This is a test alert. It has more than 1024 it should truncate chars(aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa)"
+	assert.Equal(t, long_string[:1021]+"...", EllipticalTruncate(long_string, 1024))
+
+	logrus.Infof("EllipticalTruncate test passed with long string %v", long_string)
+	logrus.Infof("EllipticalTruncate test passed with long result %v", EllipticalTruncate(long_string, 1024))
+	logrus.Info("EllipticalTruncate test passed")
 }

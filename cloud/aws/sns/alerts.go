@@ -3,16 +3,18 @@ package sns
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Direct-Debit/go-commons/stdext"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"github.com/Direct-Debit/go-commons/stdext"
 
 	"github.com/PagerDuty/go-pagerduty"
 	log "github.com/sirupsen/logrus"
 )
 
-const snsMaxSubjectLength = 100
+const snsMaxSubjectLength int = 100
+const snsMaxSummaryLength int = 1024
 
 const (
 	AlertFatal = "critical"
@@ -121,6 +123,7 @@ func (a Alerts) createAlert(msg string, severity string) {
 		LogInfo:   fmt.Sprintf("%s event @ %s", strings.ToUpper(severity), a.LogReference),
 		Traceback: string(debug.Stack()),
 	}
+	summary = stdext.EllipticalTruncate(summary, snsMaxSummaryLength)
 
 	event := pagerduty.V2Payload{
 		Summary:  summary,
