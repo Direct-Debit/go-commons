@@ -2,18 +2,20 @@ package fileio
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-	"os"
-	"strings"
 )
 
 type SFTPStore struct {
-	Address  string
-	User     string
-	Password string
+	Address        string
+	User           string
+	Password       string
+	PrivateKeyPath string
 
 	client *sftp.Client
 }
@@ -21,9 +23,26 @@ type SFTPStore struct {
 func (S *SFTPStore) connect() error {
 	conf := &ssh.ClientConfig{
 		User:            S.User,
-		Auth:            []ssh.AuthMethod{ssh.Password(S.Password)},
+		Auth:            []ssh.AuthMethod{},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+
+	if S.PrivateKeyPath != "" {
+		key, err := os.ReadFile(S.PrivateKeyPath)
+		if err != nil {
+			return errors.Wrap(err, "failed to read private key")
+		}
+		signer, err := ssh.ParsePrivateKey(key)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse private key")
+		}
+		conf.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
+	} else if S.Password != "" {
+		conf.Auth = append(conf.Auth, ssh.Password(S.Password))
+	} else {
+		return errors.New("SFTP Store no authentication method provided")
+	}
+
 	conn, err := ssh.Dial("tcp", S.Address, conf)
 	if err != nil {
 		return errors.Wrap(err, "failed to dial ssh")
