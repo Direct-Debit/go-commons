@@ -9,7 +9,7 @@ import (
 
 func TestSFTPPrivateKey(t *testing.T) {
 	sftpStore := SFTPStore{
-		Address:        "localhost:22",
+		Address:        os.Getenv("SFTP_ADDRESS"),
 		User:           os.Getenv("SFTP_USER"),
 		PrivateKeyPath: os.Getenv("SFTP_PRIVATE_KEY_PATH"),
 	}
