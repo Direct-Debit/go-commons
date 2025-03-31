@@ -33,6 +33,8 @@ type EventTraceback struct {
 	Traceback string
 }
 
+const maxSummaryLength int = 1024
+
 // PagerDuty implements methods to send notifications to pagerduty in the format:
 // [${Product}] ${Severity} event @ ${LogReference} - ${Timestamp}
 type PagerDuty struct {
@@ -110,6 +112,8 @@ func (p PagerDuty) createPagerdutyAlert(msg string, severity string) {
 	}
 
 	summary := fmt.Sprintf("[%s] %s", p.Product, msg)
+	summary = stdext.EllipticalTruncate(summary, maxSummaryLength)
+
 	details := EventTraceback{
 		Message:   msg,
 		Time:      time.Now().Format(time.RFC3339),
