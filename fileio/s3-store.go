@@ -38,7 +38,7 @@ func (s S3Store) Save(path string, content string) error {
 }
 
 func (s S3Store) Load(path string) (content string, err error) {
-	log.Trace(fmt.Sprintf("Downloading s3://%s%s", *s.Bucket, path))
+	log.Trace(fmt.Sprintf("Downloading s3://%s/%s", *s.Bucket, path))
 	output, err := s.s3.GetObject(&s3.GetObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
