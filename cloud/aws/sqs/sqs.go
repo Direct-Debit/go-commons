@@ -2,6 +2,7 @@ package sqs
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -94,6 +95,8 @@ func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error
 		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
 	}
 
+	log.Infof("Listening for messages on queue %v...", queue)
+
 	if waitTime <= 0 || waitTime > 20 {
 		return fmt.Errorf("waitTime must be between 1 and 20 seconds")
 	}
@@ -104,10 +107,16 @@ func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error
 			QueueUrl:            queueUrl,
 			WaitTimeSeconds:     aws.Int64(int64(waitTime)),
 		})
-		if err != nil {
-			return errors.Wrap(err, "failed to receive sqs messages")
-		}
 
+		if err != nil {
+			err = errors.Wrap(err, "failed to receive sqs messages")
+			if strings.Contains(err.Error(), "connection reset by peer") {
+				log.Warnf("Connection reset by peer, retrying: %v", err)
+			} else {
+				return err
+			}
+		}
+		log.Debugf("Received %d messages from SQS queue %v", len(output.Messages), queue)
 		for _, m := range output.Messages {
 			msgs <- m
 		}

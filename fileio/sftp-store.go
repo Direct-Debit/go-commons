@@ -8,6 +8,7 @@ import (
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -18,6 +19,19 @@ type SFTPStore struct {
 	PrivateKeyPath string
 
 	client *sftp.Client
+}
+
+type resetError struct {
+	message string
+}
+
+func (e *resetError) Error() string {
+	return e.message
+}
+
+func (r *resetError) Is(err error) bool {
+	_, ok := err.(*resetError)
+	return ok
 }
 
 func (S *SFTPStore) connect() error {
@@ -45,7 +59,12 @@ func (S *SFTPStore) connect() error {
 
 	conn, err := ssh.Dial("tcp", S.Address, conf)
 	if err != nil {
-		return errors.Wrap(err, "failed to dial ssh")
+		err := errors.Wrap(err, "failed to dial ssh")
+		if strings.Contains(err.Error(), "connection reset by peer") {
+			logrus.WithField("address", S.Address).Warn(err)
+			return &resetError{message: err.Error()}
+		}
+		return err
 	}
 	S.client, err = sftp.NewClient(conn)
 	return errors.Wrap(err, "failed to create sftp client")
@@ -59,10 +78,15 @@ func (S *SFTPStore) disconnect() {
 }
 
 func (S *SFTPStore) Save(path string, content string) error {
-	if err := S.connect(); err != nil {
+	err := S.connect()
+	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
 	defer S.disconnect()
+
+	if err != nil && errors.Is(err, &resetError{}) {
+		return nil
+	}
 
 	file, err := S.client.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 	if err != nil {
@@ -77,10 +101,15 @@ func (S *SFTPStore) Save(path string, content string) error {
 }
 
 func (S *SFTPStore) Load(path string) (content string, err error) {
-	if err := S.connect(); err != nil {
+	err = S.connect()
+	if err != nil && !errors.Is(err, &resetError{}) {
 		return "", err
 	}
 	defer S.disconnect()
+
+	if err != nil && errors.Is(err, &resetError{}) {
+		return "", nil
+	}
 
 	file, err := S.client.OpenFile(path, os.O_RDONLY)
 	if err != nil {
@@ -103,19 +132,29 @@ func (S *SFTPStore) Move(path string, targetDir string) error {
 }
 
 func (S *SFTPStore) Delete(path string) error {
-	if err := S.connect(); err != nil {
+	err := S.connect()
+	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
 	defer S.disconnect()
+
+	if err != nil && errors.Is(err, &resetError{}) {
+		return nil
+	}
 
 	return S.client.Remove(path)
 }
 
 func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
-	if err := S.connect(); err != nil {
+	err = S.connect()
+	if err != nil && !errors.Is(err, &resetError{}) {
 		return nil, err
 	}
 	defer S.disconnect()
+
+	if err != nil && errors.Is(err, &resetError{}) {
+		return nil, nil
+	}
 
 	inf, err := S.client.ReadDir(path)
 	if err != nil {
