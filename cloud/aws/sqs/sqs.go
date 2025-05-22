@@ -118,7 +118,7 @@ func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error
 		}
 
 		if output != nil {
-			log.Debugf("Received %d messages from SQS queue %v", len(output.Messages), queue)
+			log.Tracef("Received %d messages from SQS queue %v", len(output.Messages), queue)
 			for _, m := range output.Messages {
 				msgs <- m
 			}
