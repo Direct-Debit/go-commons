@@ -1,2 +1,5 @@
 .idea
 .vscode
+local/
+sftp/
+docker-compose.yml

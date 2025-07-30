@@ -126,11 +126,24 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 }
 
 func (s S3Store) Info(path string) (info FileInfo, err error) {
-	panic("implement me")
+	output, err := s.s3.HeadObject(&s3.HeadObjectInput{
+		Bucket: s.Bucket,
+		Key:    &path,
+	})
+	if err != nil {
+		return FileInfo{}, err
+	}
+	info = FileInfo{
+		Name:    path,
+		ModTime: *output.LastModified,
+		Size:    *output.ContentLength,
+	}
+	return info, nil
 }
 
 func (s S3Store) FullName(path string) (fullPath string, err error) {
-	panic("implement me")
+	fullPath = fmt.Sprintf("s3://%s/%s", *s.Bucket, path)
+	return fullPath, nil
 }
 
 func (s S3Store) Split(path string) (directory string, filename string) {

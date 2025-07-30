@@ -27,6 +27,7 @@ type FileInfo struct {
 	Name    string
 	Path    string // Includes the filename
 	ModTime time.Time
+	Size    int64 // Size in bytes, 0 if unknown
 }
 
 type FileData struct {
