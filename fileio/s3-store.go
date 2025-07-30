@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -159,6 +160,10 @@ func (s S3Store) DownloadLink(filePath string) (string, error) {
 		Bucket: s.Bucket,
 		Key:    &filePath,
 	})
+
+	if req.Error != nil {
+		return "", stdext.WrapError(req.Error, "Couldn't create S3 presigned URL")
+	}
 
 	return req.Presign(24 * time.Hour) // Presign for 24 hours
 }
