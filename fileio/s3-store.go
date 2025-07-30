@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/aws/aws-sdk-go/aws"
@@ -142,7 +143,7 @@ func (s S3Store) Info(path string) (info FileInfo, err error) {
 }
 
 func (s S3Store) FullName(path string) (fullPath string, err error) {
-	fullPath = fmt.Sprintf("s3://%s/%s", *s.Bucket, path)
+	fullPath = fmt.Sprintf("s3://%s/%s", *s.Bucket, strings.TrimPrefix(path, "/"))
 	return fullPath, nil
 }
 
@@ -151,4 +152,13 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 	filename = parts[len(parts)-1]
 	directory = strings.TrimSuffix(path, filename)
 	return directory, filename
+}
+
+func (s S3Store) DownloadLink(filePath string) (string, error) {
+	req, _ := s.s3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: s.Bucket,
+		Key:    &filePath,
+	})
+
+	return req.Presign(24 * time.Hour) // Presign for 24 hours
 }

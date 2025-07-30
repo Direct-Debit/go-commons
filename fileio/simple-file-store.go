@@ -144,3 +144,7 @@ func (s SimpleFileStore) UploadPath(userCode string, filename string) string {
 func (s SimpleFileStore) DownloadPath(userCode string, filename string) string {
 	return filepath.Join("downloads", userCode, filename)
 }
+
+func (s SimpleFileStore) DownloadLink(filePath string) (string, error) {
+	return s.FullName(filePath)
+}

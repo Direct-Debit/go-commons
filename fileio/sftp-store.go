@@ -190,3 +190,7 @@ func (S *SFTPStore) UploadPath(userCode string, filename string) string {
 func (S *SFTPStore) DownloadPath(userCode string, filename string) string {
 	panic("implement me")
 }
+
+func (S *SFTPStore) DownloadLink(filePath string) (string, error) {
+	panic("implement me")
+}
