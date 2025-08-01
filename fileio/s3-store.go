@@ -16,11 +16,14 @@ import (
 )
 
 type S3Store struct {
-	s3              *s3.S3
-	Bucket          *string
-	PresignDuration time.Duration
+	s3              *s3.S3        // AWS S3 client
+	Bucket          *string       // Name of the S3 bucket
+	PresignDuration time.Duration // Duration for which the presigned URL is valid
 }
 
+// NewS3Store creates a new S3Store with the specified bucket name.
+// It initializes the AWS session and S3 client.
+// The PresignDuration is set to 24 hours by default.
 func NewS3Store(bucket string) S3Store {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
