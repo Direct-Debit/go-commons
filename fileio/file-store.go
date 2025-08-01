@@ -53,8 +53,8 @@ type FileStore interface {
 	FullName(path string) (fullPath string, err error)
 	// Split the path into directory and filename
 	Split(path string) (directory string, filename string)
-	// DownloadLink returns the path to download a file for a user
-	DownloadLink(filePath string) (string, error)
+	// GetDownloadLink returns the path to download a file for a user
+	GetDownloadLink(filePath string) (string, error)
 }
 
 type FileExistsError struct {

@@ -145,6 +145,6 @@ func (s SimpleFileStore) DownloadPath(userCode string, filename string) string {
 	return filepath.Join("downloads", userCode, filename)
 }
 
-func (s SimpleFileStore) DownloadLink(filePath string) (string, error) {
+func (s SimpleFileStore) GetDownloadLink(filePath string) (string, error) {
 	return s.FullName(filePath)
 }

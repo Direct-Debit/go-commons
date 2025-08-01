@@ -16,15 +16,16 @@ import (
 )
 
 type S3Store struct {
-	s3     *s3.S3
-	Bucket *string
+	s3              *s3.S3
+	Bucket          *string
+	PresignDuration time.Duration
 }
 
 func NewS3Store(bucket string) S3Store {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-	return S3Store{s3: s3.New(sess), Bucket: &bucket}
+	return S3Store{s3: s3.New(sess), Bucket: &bucket, PresignDuration: 24 * time.Hour}
 }
 
 func (s S3Store) Save(path string, content string) error {
@@ -155,7 +156,7 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 	return directory, filename
 }
 
-func (s S3Store) DownloadLink(filePath string) (string, error) {
+func (s S3Store) GetDownloadLink(filePath string) (string, error) {
 	req, _ := s.s3.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: s.Bucket,
 		Key:    &filePath,
@@ -165,5 +166,5 @@ func (s S3Store) DownloadLink(filePath string) (string, error) {
 		return "", stdext.WrapError(req.Error, "Couldn't create S3 presigned URL")
 	}
 
-	return req.Presign(24 * time.Hour) // Presign for 24 hours
+	return req.Presign(s.PresignDuration)
 }
