@@ -116,7 +116,7 @@ func (s SimpleFileStore) List(path string) (subPaths []FileInfo, err error) {
 	return
 }
 
-func (s SimpleFileStore) Info(path string) (info FileInfo, err error) {
+func (s SimpleFileStore) GetInfo(path string) (info FileInfo, err error) {
 	fPath := s.fullPath(path)
 	inf, err := os.Stat(fPath)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s SimpleFileStore) Info(path string) (info FileInfo, err error) {
 	}, nil
 }
 
-func (s SimpleFileStore) FullName(path string) (fullPath string, err error) {
+func (s SimpleFileStore) GetFullName(path string) (fullPath string, err error) {
 	return filepath.Abs(s.fullPath(path))
 }
 
@@ -145,6 +145,6 @@ func (s SimpleFileStore) DownloadPath(userCode string, filename string) string {
 	return filepath.Join("downloads", userCode, filename)
 }
 
-func (s SimpleFileStore) GetDownloadLink(filePath string) (string, error) {
-	return s.FullName(filePath)
+func (s SimpleFileStore) GenerateDownloadLink(filePath string) (string, error) {
+	return s.GetFullName(filePath)
 }

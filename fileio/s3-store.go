@@ -131,7 +131,7 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 	return subPaths, err
 }
 
-func (s S3Store) Info(path string) (info FileInfo, err error) {
+func (s S3Store) GetInfo(path string) (info FileInfo, err error) {
 	output, err := s.s3.HeadObject(&s3.HeadObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
@@ -147,7 +147,7 @@ func (s S3Store) Info(path string) (info FileInfo, err error) {
 	return info, nil
 }
 
-func (s S3Store) FullName(path string) (fullPath string, err error) {
+func (s S3Store) GetFullName(path string) (fullPath string, err error) {
 	fullPath = fmt.Sprintf("s3://%s/%s", *s.Bucket, strings.TrimPrefix(path, "/"))
 	return fullPath, nil
 }
@@ -159,7 +159,7 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 	return directory, filename
 }
 
-func (s S3Store) GetDownloadLink(filePath string) (string, error) {
+func (s S3Store) GenerateDownloadLink(filePath string) (string, error) {
 	req, _ := s.s3.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: s.Bucket,
 		Key:    &filePath,
