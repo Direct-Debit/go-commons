@@ -27,6 +27,7 @@ type FileInfo struct {
 	Name    string
 	Path    string // Includes the filename
 	ModTime time.Time
+	Size    int64 // Size in bytes, 0 if unknown
 }
 
 type FileData struct {
@@ -47,11 +48,13 @@ type FileStore interface {
 	// The path of each returned FileInfo object will have the same relativity as the given path
 	List(path string) (subPaths []FileInfo, err error)
 	// Get more info about the given path
-	Info(path string) (info FileInfo, err error)
+	GetInfo(path string) (info FileInfo, err error)
 	// Get the absolute full pathname of the given path
-	FullName(path string) (fullPath string, err error)
+	GetFullName(path string) (fullPath string, err error)
 	// Split the path into directory and filename
 	Split(path string) (directory string, filename string)
+	// GenerateDownloadLink returns the path to download a file for a user
+	GenerateDownloadLink(filePath string) (string, error)
 }
 
 type FileExistsError struct {

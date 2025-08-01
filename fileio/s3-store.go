@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/Direct-Debit/go-commons/errlib"
+	"github.com/Direct-Debit/go-commons/stdext"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -14,15 +16,19 @@ import (
 )
 
 type S3Store struct {
-	s3     *s3.S3
-	Bucket *string
+	s3              *s3.S3        // AWS S3 client
+	Bucket          *string       // Name of the S3 bucket
+	PresignDuration time.Duration // Duration for which the presigned URL is valid
 }
 
+// NewS3Store creates a new S3Store with the specified bucket name.
+// It initializes the AWS session and S3 client.
+// The PresignDuration is set to 24 hours by default.
 func NewS3Store(bucket string) S3Store {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-	return S3Store{s3: s3.New(sess), Bucket: &bucket}
+	return S3Store{s3: s3.New(sess), Bucket: &bucket, PresignDuration: 24 * time.Hour}
 }
 
 func (s S3Store) Save(path string, content string) error {
@@ -125,12 +131,25 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 	return subPaths, err
 }
 
-func (s S3Store) Info(path string) (info FileInfo, err error) {
-	panic("implement me")
+func (s S3Store) GetInfo(path string) (info FileInfo, err error) {
+	output, err := s.s3.HeadObject(&s3.HeadObjectInput{
+		Bucket: s.Bucket,
+		Key:    &path,
+	})
+	if err != nil {
+		return FileInfo{}, err
+	}
+	info = FileInfo{
+		Name:    path,
+		ModTime: *output.LastModified,
+		Size:    *output.ContentLength,
+	}
+	return info, nil
 }
 
-func (s S3Store) FullName(path string) (fullPath string, err error) {
-	panic("implement me")
+func (s S3Store) GetFullName(path string) (fullPath string, err error) {
+	fullPath = fmt.Sprintf("s3://%s/%s", *s.Bucket, strings.TrimPrefix(path, "/"))
+	return fullPath, nil
 }
 
 func (s S3Store) Split(path string) (directory string, filename string) {
@@ -138,4 +157,17 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 	filename = parts[len(parts)-1]
 	directory = strings.TrimSuffix(path, filename)
 	return directory, filename
+}
+
+func (s S3Store) GenerateDownloadLink(filePath string) (string, error) {
+	req, _ := s.s3.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: s.Bucket,
+		Key:    &filePath,
+	})
+
+	if req.Error != nil {
+		return "", stdext.WrapError(req.Error, "Couldn't create S3 presigned URL")
+	}
+
+	return req.Presign(s.PresignDuration)
 }

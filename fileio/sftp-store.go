@@ -171,11 +171,11 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 	return subPaths, nil
 }
 
-func (S *SFTPStore) Info(path string) (info FileInfo, err error) {
+func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
 	panic("implement me")
 }
 
-func (S *SFTPStore) FullName(path string) (fullPath string, err error) {
+func (S *SFTPStore) GetFullName(path string) (fullPath string, err error) {
 	panic("implement me")
 }
 
@@ -188,5 +188,9 @@ func (S *SFTPStore) UploadPath(userCode string, filename string) string {
 }
 
 func (S *SFTPStore) DownloadPath(userCode string, filename string) string {
+	panic("implement me")
+}
+
+func (S *SFTPStore) GenerateDownloadLink(filePath string) (string, error) {
 	panic("implement me")
 }
