@@ -32,8 +32,12 @@ func NewS3Store(bucket string) S3Store {
 }
 
 func (s S3Store) Save(path string, content string) error {
+	return s.SaveStream(path, strings.NewReader(content))
+}
+
+func (s S3Store) SaveStream(path string, content io.ReadSeeker) error {
 	_, err := s.s3.PutObject(&s3.PutObjectInput{
-		Body:   strings.NewReader(content),
+		Body:   content,
 		Bucket: s.Bucket,
 		Key:    aws.String(path),
 	})
