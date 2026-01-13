@@ -18,7 +18,8 @@ type SFTPStore struct {
 	Password       string
 	PrivateKeyPath string
 
-	client *sftp.Client
+	client     *sftp.Client
+	connection *ssh.Client
 }
 
 type resetError struct {
@@ -57,7 +58,8 @@ func (S *SFTPStore) connect() error {
 		return errors.New("SFTP Store no authentication method provided")
 	}
 
-	conn, err := ssh.Dial("tcp", S.Address, conf)
+	var err error
+	S.connection, err = ssh.Dial("tcp", S.Address, conf)
 	if err != nil {
 		err := errors.Wrap(err, "failed to dial ssh")
 		if strings.Contains(err.Error(), "connection reset by peer") {
@@ -66,15 +68,17 @@ func (S *SFTPStore) connect() error {
 		}
 		return err
 	}
-	S.client, err = sftp.NewClient(conn)
+	S.client, err = sftp.NewClient(S.connection)
 	return errors.Wrap(err, "failed to create sftp client")
 }
 
 func (S *SFTPStore) disconnect() {
-	if S.client == (*sftp.Client)(nil) {
-		return
+	if S.client != (*sftp.Client)(nil) {
+		errlib.WarnError(S.client.Close(), "Could not disconnect from SFTP")
 	}
-	errlib.WarnError(S.client.Close(), "Could not disconnect from SFTP")
+	if S.connection != (*ssh.Client)(nil) {
+		errlib.WarnError(S.connection.Close(), "Could not close SSH connection")
+	}
 }
 
 func (S *SFTPStore) Save(path string, content string) error {
@@ -186,7 +190,24 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 }
 
 func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
-	panic("implement me")
+	err = S.connect()
+	defer S.disconnect()
+
+	if err != nil {
+		return info, nil
+	}
+
+	inf, err := S.client.Stat(path)
+	if err != nil {
+		return info, errors.Wrap(err, "failed to get stat of file")
+	}
+	info = FileInfo{
+		Name:    inf.Name(),
+		ModTime: inf.ModTime(),
+		Size:    inf.Size(),
+		Path:    path,
+	}
+	return info, nil
 }
 
 func (S *SFTPStore) GetFullName(path string) (fullPath string, err error) {
