@@ -81,9 +81,11 @@ func (S *SFTPStore) connect() error {
 func (S *SFTPStore) Disconnect() {
 	if S.client != (*sftp.Client)(nil) {
 		errlib.WarnError(S.client.Close(), "Could not disconnect from SFTP")
+		S.client = nil
 	}
 	if S.connection != (*ssh.Client)(nil) {
 		errlib.WarnError(S.connection.Close(), "Could not close SSH connection")
+		S.connection = nil
 	}
 }
 
