@@ -143,6 +143,11 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 	return strBuilder.String(), nil
 }
 
+/*
+*
+
+	Important: remember to close the returned file after use
+*/
 func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
 	err = S.connect()
 	if !S.KeepAlive {
@@ -153,9 +158,6 @@ func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open SFTP file")
 	}
-	defer func() {
-		errlib.WarnError(file.Close(), "Couldn't close SFTP file")
-	}()
 	return file, nil
 }
 
