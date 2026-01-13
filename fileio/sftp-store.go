@@ -17,6 +17,7 @@ type SFTPStore struct {
 	User           string
 	Password       string
 	PrivateKeyPath string
+	KeepAlive      bool
 
 	client     *sftp.Client
 	connection *ssh.Client
@@ -36,6 +37,11 @@ func (r *resetError) Is(err error) bool {
 }
 
 func (S *SFTPStore) connect() error {
+	// if already connected, do nothing
+	if S.client != (*sftp.Client)(nil) && S.connection != (*ssh.Client)(nil) {
+		return nil
+	}
+
 	conf := &ssh.ClientConfig{
 		User:            S.User,
 		Auth:            []ssh.AuthMethod{},
@@ -72,7 +78,7 @@ func (S *SFTPStore) connect() error {
 	return errors.Wrap(err, "failed to create sftp client")
 }
 
-func (S *SFTPStore) disconnect() {
+func (S *SFTPStore) Disconnect() {
 	if S.client != (*sftp.Client)(nil) {
 		errlib.WarnError(S.client.Close(), "Could not disconnect from SFTP")
 	}
@@ -86,7 +92,9 @@ func (S *SFTPStore) Save(path string, content string) error {
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	if err != nil && errors.Is(err, &resetError{}) {
 		return nil
@@ -109,7 +117,9 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return "", err
 	}
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	if err != nil && errors.Is(err, &resetError{}) {
 		return "", nil
@@ -133,7 +143,9 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 
 func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
 	err = S.connect()
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	file, err := S.client.Open(path)
 	if err != nil {
@@ -154,7 +166,9 @@ func (S *SFTPStore) Delete(path string) error {
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	if err != nil && errors.Is(err, &resetError{}) {
 		return nil
@@ -168,7 +182,9 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return nil, err
 	}
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	if err != nil && errors.Is(err, &resetError{}) {
 		return nil, nil
@@ -191,7 +207,9 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 
 func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
 	err = S.connect()
-	defer S.disconnect()
+	if !S.KeepAlive {
+		defer S.Disconnect()
+	}
 
 	if err != nil {
 		return info, nil

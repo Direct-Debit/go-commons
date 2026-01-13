@@ -21,7 +21,7 @@ func TestSFTPPrivateKey(t *testing.T) {
 	assert.NotEmpty(t, files)
 	assert.NoError(t, err)
 
-	sftpStore.disconnect()
+	sftpStore.Disconnect()
 }
 
 func TestSFTPPassword(t *testing.T) {
@@ -38,5 +38,5 @@ func TestSFTPPassword(t *testing.T) {
 	assert.NotEmpty(t, files)
 	assert.NoError(t, err)
 
-	sftpStore.disconnect()
+	sftpStore.Disconnect()
 }
