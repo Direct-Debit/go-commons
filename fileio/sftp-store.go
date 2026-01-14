@@ -216,7 +216,7 @@ func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
 	}
 
 	if err != nil {
-		return info, nil
+		return info, err
 	}
 
 	inf, err := S.client.Stat(path)
