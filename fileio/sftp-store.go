@@ -90,10 +90,7 @@ func (S *SFTPStore) Disconnect() {
 }
 
 func (S *SFTPStore) Save(path string, content string) error {
-	err := 
-	if err != nil {
-		return info, err
-	}
+	err := S.connect()
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
@@ -118,10 +115,7 @@ func (S *SFTPStore) Save(path string, content string) error {
 }
 
 func (S *SFTPStore) Load(path string) (content string, err error) {
-	err = 
-	if err != nil {
-		return info, err
-	}
+	err = S.connect()
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return "", err
 	}
@@ -152,10 +146,7 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 // LoadStream opens a file and returns a stream.
 // The caller must close the returned file after use, as well as the SFTP connection using Disconnect().
 func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
-	err = 
-	if err != nil {
-		return info, err
-	}
+	err = S.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -172,10 +163,7 @@ func (S *SFTPStore) Move(path string, targetDir string) error {
 }
 
 func (S *SFTPStore) Delete(path string) error {
-	err := 
-	if err != nil {
-		return info, err
-	}
+	err := S.connect()
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
@@ -191,9 +179,7 @@ func (S *SFTPStore) Delete(path string) error {
 }
 
 func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
-	if err != nil {
-		return info, err
-	}
+	err = S.connect()
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return nil, err
 	}
