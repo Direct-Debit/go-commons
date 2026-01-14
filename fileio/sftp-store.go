@@ -215,10 +215,6 @@ func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
 		defer S.Disconnect()
 	}
 
-	if err != nil {
-		return info, err
-	}
-
 	inf, err := S.client.Stat(path)
 	if err != nil {
 		return info, errors.Wrap(err, "failed to get stat of file")
