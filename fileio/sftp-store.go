@@ -90,7 +90,10 @@ func (S *SFTPStore) Disconnect() {
 }
 
 func (S *SFTPStore) Save(path string, content string) error {
-	err := S.connect()
+	err := 
+	if err != nil {
+		return info, err
+	}
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
@@ -115,7 +118,10 @@ func (S *SFTPStore) Save(path string, content string) error {
 }
 
 func (S *SFTPStore) Load(path string) (content string, err error) {
-	err = S.connect()
+	err = 
+	if err != nil {
+		return info, err
+	}
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return "", err
 	}
@@ -143,11 +149,15 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 	return strBuilder.String(), nil
 }
 
-// LoadStream opens a file and returns a stream. The caller must close the returned file after use.
+// LoadStream opens a file and returns a stream.
+// The caller must close the returned file after use, as well as the SFTP connection using Disconnect().
 func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
-	err = S.connect()
-	if !S.KeepAlive {
-		defer S.Disconnect()
+	err = 
+	if err != nil {
+		return info, err
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	file, err := S.client.Open(path)
@@ -162,7 +172,10 @@ func (S *SFTPStore) Move(path string, targetDir string) error {
 }
 
 func (S *SFTPStore) Delete(path string) error {
-	err := S.connect()
+	err := 
+	if err != nil {
+		return info, err
+	}
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return err
 	}
@@ -178,7 +191,10 @@ func (S *SFTPStore) Delete(path string) error {
 }
 
 func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
-	err = S.connect()
+	err = 
+	if err != nil {
+		return info, err
+	}
 	if err != nil && !errors.Is(err, &resetError{}) {
 		return nil, err
 	}
@@ -207,6 +223,9 @@ func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
 
 func (S *SFTPStore) GetInfo(path string) (info FileInfo, err error) {
 	err = S.connect()
+	if err != nil {
+		return info, err
+	}
 	if !S.KeepAlive {
 		defer S.Disconnect()
 	}
