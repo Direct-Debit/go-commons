@@ -143,11 +143,7 @@ func (S *SFTPStore) Load(path string) (content string, err error) {
 	return strBuilder.String(), nil
 }
 
-/*
-*
-
-	Important: remember to close the returned file after use
-*/
+// LoadStream opens a file and returns a stream. The caller must close the returned file after use.
 func (S *SFTPStore) LoadStream(path string) (content *sftp.File, err error) {
 	err = S.connect()
 	if !S.KeepAlive {
