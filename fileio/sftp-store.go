@@ -191,7 +191,6 @@ func (S *SFTPStore) Delete(path string) error {
 }
 
 func (S *SFTPStore) List(path string) (subPaths []FileInfo, err error) {
-	err = 
 	if err != nil {
 		return info, err
 	}
