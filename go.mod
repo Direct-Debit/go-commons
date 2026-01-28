@@ -1,6 +1,8 @@
 module github.com/Direct-Debit/go-commons
 
-go 1.19
+go 1.24.0
+
+toolchain go1.24.12
 
 require (
 	github.com/PagerDuty/go-pagerduty v1.4.0
@@ -11,8 +13,8 @@ require (
 	github.com/pkg/sftp v1.13.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/streadway/amqp v1.0.0
-	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.31.0
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/crypto v0.46.0
 )
 
 require (
@@ -26,9 +28,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
-	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/yaml.v3 v3.0.0-20220521103104-8f96da9f5d5e // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
