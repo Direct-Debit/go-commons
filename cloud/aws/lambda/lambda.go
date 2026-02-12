@@ -1,6 +1,7 @@
 package lambda
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/Direct-Debit/go-commons/errlib"
@@ -33,6 +34,27 @@ func (l Client) General(fName string, in interface{}) (out map[string]interface{
 
 	log.Infof("Invoking %s", fName)
 	response, err := l.client.Invoke(&lambda.InvokeInput{
+		FunctionName: &fName,
+		Payload:      payload,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	log.Tracef("%s response: %s", fName, string(response.Payload))
+	err = json.Unmarshal(response.Payload, &result)
+	return result, err
+}
+
+func (l Client) GeneralWithContext(ctx context.Context, fName string, in interface{}) (out map[string]interface{}, err error) {
+	payload, err := json.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Invoking %s", fName)
+	response, err := l.client.InvokeWithContext(ctx, &lambda.InvokeInput{
 		FunctionName: &fName,
 		Payload:      payload,
 	})

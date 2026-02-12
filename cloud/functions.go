@@ -1,8 +1,10 @@
 package cloud
 
 import (
-	"github.com/Direct-Debit/go-commons/cloud/aws/lambda"
+	"context"
 	"sync"
+
+	"github.com/Direct-Debit/go-commons/cloud/aws/lambda"
 )
 
 var setup sync.Once
@@ -13,6 +15,7 @@ type CdvValidator interface {
 
 type FunctionCaller interface {
 	General(functionName string, in interface{}) (out map[string]interface{}, err error)
+	GeneralWithContext(ctx context.Context, functionName string, in interface{}) (out map[string]interface{}, err error)
 	GeneralAsync(functionName string, in interface{}) (err error)
 }
 
@@ -35,6 +38,11 @@ func doSetup() {
 func CallFunc(functionName string, in interface{}) (out map[string]interface{}, err error) {
 	doSetup()
 	return caller.General(functionName, in)
+}
+
+func CallFuncWithContext(ctx context.Context, functionName string, in interface{}) (out map[string]interface{}, err error) {
+	doSetup()
+	return caller.GeneralWithContext(ctx, functionName, in)
 }
 
 func CallAsync(functionName string, in interface{}) (err error) {
