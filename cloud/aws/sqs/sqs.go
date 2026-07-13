@@ -1,32 +1,35 @@
 package sqs
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	sqstypes "github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
-	sqsClient   *sqs.SQS
+	sqsClient   *sqs.Client
 	Queues      map[string]*string
 	Environment string // dev, stage, prod etc...
 }
 
-type Attributes map[string]*sqs.MessageAttributeValue
+type Attributes map[string]sqstypes.MessageAttributeValue
 
 func NewClient(env string) Client {
 	log.Trace("Setting up sqs client")
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
 
 	return Client{
-		sqsClient:   sqs.New(sess),
+		sqsClient:   sqs.NewFromConfig(cfg),
 		Queues:      make(map[string]*string),
 		Environment: env,
 	}
@@ -36,7 +39,7 @@ func (c Client) getQueueURL(queue string) (*string, error) {
 	if queueUrl, ok := c.Queues[queue]; ok {
 		return queueUrl, nil
 	} else {
-		result, err := c.sqsClient.GetQueueUrl(&sqs.GetQueueUrlInput{
+		result, err := c.sqsClient.GetQueueUrl(context.TODO(), &sqs.GetQueueUrlInput{
 			QueueName: &queue,
 		})
 		if err != nil {
@@ -62,15 +65,15 @@ func (c Client) SendMessage(queue string, message string, delay int, attr Attrib
 		attr = make(Attributes)
 	}
 
-	attr["Env"] = &sqs.MessageAttributeValue{
+	attr["Env"] = sqstypes.MessageAttributeValue{
 		DataType:    aws.String("String"),
 		StringValue: aws.String(c.Environment),
 	}
 
-	_, err = c.sqsClient.SendMessage(&sqs.SendMessageInput{
+	_, err = c.sqsClient.SendMessage(context.TODO(), &sqs.SendMessageInput{
 		MessageAttributes: attr,
 		MessageBody:       aws.String(message),
-		DelaySeconds:      aws.Int64(int64(delay)),
+		DelaySeconds:      int32(delay),
 		QueueUrl:          queueUrl,
 	})
 	return errors.Wrapf(err, "failed to send message to SQS queue %v", queue)
@@ -82,14 +85,14 @@ func (c Client) DeleteMessage(queue string, receiptHandle string) error {
 		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
 	}
 
-	_, err = c.sqsClient.DeleteMessage(&sqs.DeleteMessageInput{
+	_, err = c.sqsClient.DeleteMessage(context.TODO(), &sqs.DeleteMessageInput{
 		ReceiptHandle: &receiptHandle,
 		QueueUrl:      queueUrl,
 	})
 	return errors.Wrapf(err, "failed to delete message from %v", queue)
 }
 
-func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error {
+func (c Client) Listen(queue string, waitTime int, msgs chan sqstypes.Message) error {
 	queueUrl, err := c.getQueueURL(queue)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get SQS queue url for %v", queue)
@@ -102,10 +105,10 @@ func (c Client) Listen(queue string, waitTime int, msgs chan *sqs.Message) error
 	}
 
 	for {
-		output, err := c.sqsClient.ReceiveMessage(&sqs.ReceiveMessageInput{
-			MaxNumberOfMessages: aws.Int64(int64(10)),
+		output, err := c.sqsClient.ReceiveMessage(context.TODO(), &sqs.ReceiveMessageInput{
+			MaxNumberOfMessages: int32(10),
 			QueueUrl:            queueUrl,
-			WaitTimeSeconds:     aws.Int64(int64(waitTime)),
+			WaitTimeSeconds:     int32(waitTime),
 		})
 
 		if err != nil {
