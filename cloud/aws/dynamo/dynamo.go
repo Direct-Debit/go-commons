@@ -127,9 +127,61 @@ func GetItemsLambda(keys []Item, table *string, batchSize int) []Item {
 	return res
 }
 
+// toV1AttributeValue converts a V2 dynamotypes.AttributeValue into the JSON
+// shape produced by the old aws-sdk-go v1 dynamodb.AttributeValue struct
+// (e.g. {"S": "foo"}, {"N": "123"}, {"M": {...}}), since the cmn-dynamo-get-items
+// lambda still expects that wire format and cannot be changed.
+func toV1AttributeValue(av dynamotypes.AttributeValue) map[string]interface{} {
+	switch v := av.(type) {
+	case *dynamotypes.AttributeValueMemberS:
+		return map[string]interface{}{"S": v.Value}
+	case *dynamotypes.AttributeValueMemberN:
+		return map[string]interface{}{"N": v.Value}
+	case *dynamotypes.AttributeValueMemberB:
+		return map[string]interface{}{"B": v.Value}
+	case *dynamotypes.AttributeValueMemberSS:
+		return map[string]interface{}{"SS": v.Value}
+	case *dynamotypes.AttributeValueMemberNS:
+		return map[string]interface{}{"NS": v.Value}
+	case *dynamotypes.AttributeValueMemberBS:
+		return map[string]interface{}{"BS": v.Value}
+	case *dynamotypes.AttributeValueMemberBOOL:
+		return map[string]interface{}{"BOOL": v.Value}
+	case *dynamotypes.AttributeValueMemberNULL:
+		return map[string]interface{}{"NULL": v.Value}
+	case *dynamotypes.AttributeValueMemberL:
+		list := make([]interface{}, len(v.Value))
+		for i, elem := range v.Value {
+			list[i] = toV1AttributeValue(elem)
+		}
+		return map[string]interface{}{"L": list}
+	case *dynamotypes.AttributeValueMemberM:
+		m := make(map[string]interface{}, len(v.Value))
+		for key, elem := range v.Value {
+			m[key] = toV1AttributeValue(elem)
+		}
+		return map[string]interface{}{"M": m}
+	default:
+		return nil
+	}
+}
+
+func toV1Item(item Item) map[string]interface{} {
+	v1Item := make(map[string]interface{}, len(item))
+	for key, av := range item {
+		v1Item[key] = toV1AttributeValue(av)
+	}
+	return v1Item
+}
+
 func invokeGetItemsLambda(items []Item, table *string, output chan []Item) {
+	v1Items := make([]map[string]interface{}, len(items))
+	for i, item := range items {
+		v1Items[i] = toV1Item(item)
+	}
+
 	input := map[string]interface{}{
-		"items": items,
+		"items": v1Items,
 		"table": *table,
 	}
 	result, err := cloud.CallFunc("cmn-dynamo-get-items", input)
