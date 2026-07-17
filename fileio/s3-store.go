@@ -2,6 +2,7 @@ package fileio
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -9,14 +10,15 @@ import (
 
 	"github.com/Direct-Debit/go-commons/errlib"
 	"github.com/Direct-Debit/go-commons/stdext"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	log "github.com/sirupsen/logrus"
 )
 
 type S3Store struct {
-	s3              *s3.S3        // AWS S3 client
+	s3              *s3.Client    // AWS S3 client
 	Bucket          *string       // Name of the S3 bucket
 	PresignDuration time.Duration // Duration for which the presigned URL is valid
 }
@@ -25,10 +27,11 @@ type S3Store struct {
 // It initializes the AWS session and S3 client.
 // The PresignDuration is set to 24 hours by default.
 func NewS3Store(bucket string) S3Store {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-	return S3Store{s3: s3.New(sess), Bucket: &bucket, PresignDuration: 24 * time.Hour}
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+	return S3Store{s3: s3.NewFromConfig(cfg), Bucket: &bucket, PresignDuration: 24 * time.Hour}
 }
 
 func (s S3Store) Save(path string, content string) error {
@@ -36,7 +39,7 @@ func (s S3Store) Save(path string, content string) error {
 }
 
 func (s S3Store) SaveStream(path string, content io.ReadSeeker) error {
-	_, err := s.s3.PutObject(&s3.PutObjectInput{
+	_, err := s.s3.PutObject(context.TODO(), &s3.PutObjectInput{
 		Body:   content,
 		Bucket: s.Bucket,
 		Key:    aws.String(path),
@@ -49,7 +52,7 @@ func (s S3Store) SaveStream(path string, content io.ReadSeeker) error {
 
 func (s S3Store) Load(path string) (content string, err error) {
 	log.Trace(fmt.Sprintf("Downloading s3://%s/%s", *s.Bucket, path))
-	output, err := s.s3.GetObject(&s3.GetObjectInput{
+	output, err := s.s3.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
 	})
@@ -80,7 +83,7 @@ func (s S3Store) Move(path string, targetDir string) error {
 		return nil
 	}
 
-	_, err := s.s3.CopyObject(&s3.CopyObjectInput{
+	_, err := s.s3.CopyObject(context.TODO(), &s3.CopyObjectInput{
 		Bucket:     s.Bucket,
 		CopySource: aws.String(*s.Bucket + "/" + path),
 		Key:        aws.String(targetDir + name),
@@ -93,7 +96,7 @@ func (s S3Store) Move(path string, targetDir string) error {
 }
 
 func (s S3Store) Delete(path string) error {
-	_, err := s.s3.DeleteObject(&s3.DeleteObjectInput{
+	_, err := s.s3.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
 	})
@@ -107,15 +110,14 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 		Prefix: &path,
 	}
 
-	var content []*s3.Object
-	err = s.s3.ListObjectsV2Pages(params,
-		func(page *s3.ListObjectsV2Output, lastPage bool) bool {
-			content = append(content, page.Contents...)
-			return true
-		},
-	)
-	if err != nil {
-		return nil, err
+	var content []s3types.Object
+	paginator := s3.NewListObjectsV2Paginator(s.s3, params)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.TODO())
+		if err != nil {
+			return nil, err
+		}
+		content = append(content, page.Contents...)
 	}
 
 	subPaths = make([]FileInfo, 0, len(content))
@@ -136,7 +138,7 @@ func (s S3Store) List(path string) (subPaths []FileInfo, err error) {
 }
 
 func (s S3Store) GetInfo(path string) (info FileInfo, err error) {
-	output, err := s.s3.HeadObject(&s3.HeadObjectInput{
+	output, err := s.s3.HeadObject(context.TODO(), &s3.HeadObjectInput{
 		Bucket: s.Bucket,
 		Key:    &path,
 	})
@@ -164,14 +166,14 @@ func (s S3Store) Split(path string) (directory string, filename string) {
 }
 
 func (s S3Store) GenerateDownloadLink(filePath string) (string, error) {
-	req, _ := s.s3.GetObjectRequest(&s3.GetObjectInput{
+	presignClient := s3.NewPresignClient(s.s3)
+	req, err := presignClient.PresignGetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: s.Bucket,
 		Key:    &filePath,
-	})
-
-	if req.Error != nil {
-		return "", stdext.WrapError(req.Error, "Couldn't create S3 presigned URL")
+	}, s3.WithPresignExpires(s.PresignDuration))
+	if err != nil {
+		return "", stdext.WrapError(err, "Couldn't create S3 presigned URL")
 	}
 
-	return req.Presign(s.PresignDuration)
+	return req.URL, nil
 }

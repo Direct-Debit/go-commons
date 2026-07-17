@@ -5,46 +5,30 @@ import (
 	"encoding/json"
 
 	"github.com/Direct-Debit/go-commons/errlib"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
-	client *lambda.Lambda
+	client *lambda.Client
 }
 
 func NewClient() Client {
 	log.Trace("Setting up lambda client")
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
 
 	return Client{
-		client: lambda.New(sess),
+		client: lambda.NewFromConfig(cfg),
 	}
 }
 
 func (l Client) General(fName string, in interface{}) (out map[string]interface{}, err error) {
-	payload, err := json.Marshal(in)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("Invoking %s", fName)
-	response, err := l.client.Invoke(&lambda.InvokeInput{
-		FunctionName: &fName,
-		Payload:      payload,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var result map[string]interface{}
-	log.Tracef("%s response: %s", fName, string(response.Payload))
-	err = json.Unmarshal(response.Payload, &result)
-	return result, err
+	return l.GeneralWithContext(context.TODO(), fName, in)
 }
 
 func (l Client) GeneralWithContext(ctx context.Context, fName string, in interface{}) (out map[string]interface{}, err error) {
@@ -54,7 +38,7 @@ func (l Client) GeneralWithContext(ctx context.Context, fName string, in interfa
 	}
 
 	log.Infof("Invoking %s", fName)
-	response, err := l.client.InvokeWithContext(ctx, &lambda.InvokeInput{
+	response, err := l.client.Invoke(ctx, &lambda.InvokeInput{
 		FunctionName: &fName,
 		Payload:      payload,
 	})
@@ -75,10 +59,10 @@ func (l Client) GeneralAsync(fName string, in interface{}) (err error) {
 	}
 
 	log.Infof("Invoking %s asynchronously", fName)
-	_, err = l.client.Invoke(&lambda.InvokeInput{
+	_, err = l.client.Invoke(context.TODO(), &lambda.InvokeInput{
 		FunctionName:   &fName,
 		Payload:        payload,
-		InvocationType: aws.String(lambda.InvocationTypeEvent),
+		InvocationType: lambdatypes.InvocationTypeEvent,
 	})
 	return
 }
