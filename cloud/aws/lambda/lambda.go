@@ -27,11 +27,11 @@ func NewClient() Client {
 	}
 }
 
-func (l Client) General(fName string, in interface{}) (out map[string]interface{}, err error) {
-	return l.GeneralWithContext(context.TODO(), fName, in)
+func (l Client) General(fName string, in interface{}, optFns ...func(*lambda.Options)) (out map[string]interface{}, err error) {
+	return l.GeneralWithContext(context.TODO(), fName, in, optFns...)
 }
 
-func (l Client) GeneralWithContext(ctx context.Context, fName string, in interface{}) (out map[string]interface{}, err error) {
+func (l Client) GeneralWithContext(ctx context.Context, fName string, in interface{}, optFns ...func(*lambda.Options)) (out map[string]interface{}, err error) {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (l Client) GeneralWithContext(ctx context.Context, fName string, in interfa
 	response, err := l.client.Invoke(ctx, &lambda.InvokeInput{
 		FunctionName: &fName,
 		Payload:      payload,
-	})
+	}, optFns...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (l Client) GeneralWithContext(ctx context.Context, fName string, in interfa
 	return result, err
 }
 
-func (l Client) GeneralAsync(fName string, in interface{}) (err error) {
+func (l Client) GeneralAsync(fName string, in interface{}, optFns ...func(*lambda.Options)) (err error) {
 	payload, err := json.Marshal(in)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func (l Client) GeneralAsync(fName string, in interface{}) (err error) {
 		FunctionName:   &fName,
 		Payload:        payload,
 		InvocationType: lambdatypes.InvocationTypeEvent,
-	})
+	}, optFns...)
 	return
 }
 
