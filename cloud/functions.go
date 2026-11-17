@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Direct-Debit/go-commons/cloud/aws/lambda"
+	sdk "github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 var setup sync.Once
@@ -14,9 +15,9 @@ type CdvValidator interface {
 }
 
 type FunctionCaller interface {
-	General(functionName string, in interface{}) (out map[string]interface{}, err error)
-	GeneralWithContext(ctx context.Context, functionName string, in interface{}) (out map[string]interface{}, err error)
-	GeneralAsync(functionName string, in interface{}) (err error)
+	General(functionName string, in interface{}, optFns ...func(*sdk.Options)) (out map[string]interface{}, err error)
+	GeneralWithContext(ctx context.Context, functionName string, in interface{}, optFns ...func(*sdk.Options)) (out map[string]interface{}, err error)
+	GeneralAsync(functionName string, in interface{}, optFns ...func(*sdk.Options)) (err error)
 }
 
 // Deprecated: Rather use CdvValidator
@@ -35,19 +36,19 @@ func doSetup() {
 	})
 }
 
-func CallFunc(functionName string, in interface{}) (out map[string]interface{}, err error) {
+func CallFunc(functionName string, in interface{}, optFns ...func(*sdk.Options)) (out map[string]interface{}, err error) {
 	doSetup()
-	return caller.General(functionName, in)
+	return caller.General(functionName, in, optFns...)
 }
 
-func CallFuncWithContext(ctx context.Context, functionName string, in interface{}) (out map[string]interface{}, err error) {
+func CallFuncWithContext(ctx context.Context, functionName string, in interface{}, optFns ...func(*sdk.Options)) (out map[string]interface{}, err error) {
 	doSetup()
-	return caller.GeneralWithContext(ctx, functionName, in)
+	return caller.GeneralWithContext(ctx, functionName, in, optFns...)
 }
 
-func CallAsync(functionName string, in interface{}) (err error) {
+func CallAsync(functionName string, in interface{}, optFns ...func(*sdk.Options)) (err error) {
 	doSetup()
-	return caller.GeneralAsync(functionName, in)
+	return caller.GeneralAsync(functionName, in, optFns...)
 }
 
 func ValidateCDV(number string, branch string, accountType string) (map[string]string, error) {
